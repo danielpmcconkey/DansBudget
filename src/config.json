@@ -1,0 +1,15 @@
+{
+    "api": {
+        "invokeUrlAssetAccount": "https://w4u1pn8qd5.execute-api.us-east-1.amazonaws.com/prod",
+        "invokeUrlDebtAccount": "https://017iquxfgj.execute-api.us-east-1.amazonaws.com/prod",
+        "invokeUrlBill": "https://izhwq1zeg2.execute-api.us-east-1.amazonaws.com/prod",
+        "invokeUrlProperty": "https://913cq8iz96.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlBudget": "https://6q5xr3eka4.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlEmployer": "https://plgp6nbldd.execute-api.us-east-1.amazonaws.com/Prod"
+    },
+    "cognito": {
+        "REGION": "us-east-1",
+        "USER_POOL_ID": "us-east-1_cX6VgTrCc",
+        "APP_CLIENT_ID": "5th6ev67g1cnc0k8ponnu5d25u"
+    }
+}
