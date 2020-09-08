@@ -12,6 +12,20 @@ export default class Navbar extends Component {
             console.log(error.message);
         }
     }
+
+    addListenerToHamburger = () => {
+        var burger = document.querySelector('.navbar-burger');
+        var menu = document.querySelector('.navbar-menu');
+        burger.addEventListener('click', function () {
+            burger.classList.toggle('is-active');
+            menu.classList.toggle('is-active');
+        });
+    }
+    componentDidMount = () => {
+        this.addListenerToHamburger();
+    }
+
+
     render() {
         return (
 
@@ -19,8 +33,7 @@ export default class Navbar extends Component {
                 <div className="navbar-brand">
                     <a className="navbar-item" href="/">
                         Dan's Budget
-          </a>
-
+                     </a>
                     <a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
@@ -29,47 +42,39 @@ export default class Navbar extends Component {
                 </div>
 
                 <div id="navbarBasicExample" className="navbar-menu">
-
                     <div className="navbar-start">
                         <a className="navbar-item" href="/">Home</a>
-                        <div className="navbar-item has-dropdown is-hoverable">
-                            <a className="navbar-link">
-                                Manage household and accounts
-              </a>
-                            <div className="navbar-dropdown">
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/assetAccounts" className="navbar-item">
-                                        Manage Asset Accounts
-                                    </a>
-                                )}
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/debtAccounts" className="navbar-item">
-                                        Manage Debt Accounts
-                                    </a>
-                                )}
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/bills" className="navbar-item">
-                                        Manage Bills
-                                    </a>
-                                )}
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/budgets" className="navbar-item">
-                                        Manage Budgets
-                                    </a>
-                                )}
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/properties" className="navbar-item">
-                                        Manage Properties
-                                    </a>
-                                )}
-                                <hr className="navbar-divider"></hr>
-                                {this.props.auth.isAuthenticated && (
-                                    <a href="/Simulation" className="navbar-item">
-                                        Run simulation
-                                    </a>
-                                )}
-                            </div>
-                        </div>
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/assetAccounts" className="navbar-item">
+                                Manage Asset Accounts
+                            </a>
+                        )}
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/debtAccounts" className="navbar-item">
+                                Manage Debt Accounts
+                            </a>
+                        )}
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/bills" className="navbar-item">
+                                Manage Bills
+                            </a>
+                        )}
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/budgets" className="navbar-item">
+                                Manage Budgets
+                            </a>
+                        )}
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/properties" className="navbar-item">
+                                Manage Properties
+                            </a>
+                        )}
+
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/Simulation" className="navbar-item">
+                                Run simulation
+                            </a>
+                        )}
                     </div>
                     <div className="navbar-end">
                         <div className="navbar-item">
@@ -84,7 +89,7 @@ export default class Navbar extends Component {
                                         </a>
                                         <a href="/login" className="button is-light">
                                             Log in
-                </a>
+                                         </a>
                                     </div>
                                 )}
                                 {this.props.auth.isAuthenticated && (
