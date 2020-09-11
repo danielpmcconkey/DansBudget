@@ -17,8 +17,7 @@ export default class Simulation extends Component {
         simOutcomeText: "",
         debugMessages: [],
         payScheduleStateful: [],
-        worthScheduleStateful: [],
-        reactChartsData: {}
+        worthScheduleStateful: []
     }
     /* #region sim properties */
     assetAccounts = [];
@@ -36,34 +35,38 @@ export default class Simulation extends Component {
     dailySpendAccount = {};
     newInvestmentsAccount = {};
     primarySavingAccount = {};
-    simulationRunDate = moment();
+    simulationRunDate = moment("2020-09-08");
     endDate = moment("2041-01-01");
     paySchedule = [];
     worthSchedule = [];
-    nonDebtSpendingMonthly = 0;
-    nonDebtSpendingDaily = 0;
+    budgetSpendingMonthly = 0;
+    billsSpendingMonthly = 0;
+    budgetSpendingDailly = 0;
     totalDebtInterestAccrual = 0;
-    totalDebtSpendingMonthly = 0;
+    totalMonthlyBurn = 0;
 
     /* #endregion */
     runSim = async () => {
         try {
             await this.setup();
+
             var simMonthlyCycleDay = moment().date();
             if (simMonthlyCycleDay > 28) simMonthlyCycleDay = 28; // not all months have a 29th day
             var firstDayOfSim = true;
 
 
             while (this.simulationRunDate <= this.endDate) {
+
+                this.accrueInterest();
+                this.checkForPayDay();
+                this.checkForBonus();
+
                 // run at the beginning and every month thereafter
                 if (firstDayOfSim || this.simulationRunDate.date() == simMonthlyCycleDay) {
                     this.transferToDailySpendAccount();
                 }
 
                 this.dailySpend();
-                this.accrueInterest();
-                this.checkForPayDay();
-                this.checkForBonus();
                 this.payBills();
 
                 if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() == 1)  // last day of the month
@@ -81,15 +84,22 @@ export default class Simulation extends Component {
                 firstDayOfSim = false;
             }
 
+            // save sim data
+            await this.saveSimData();
+            this.simOutcomeText = "Simulation successful"
 
 
 
         } catch (err) {
-            console.log(`An error has occurred: ${err}`);
+            var errorMessage = `An error has occurred: ${err}`;
+            console.log(errorMessage);
+            if (err.toString().startsWith("Overdrawn on account")) {
+                this.simOutcomeText = "Simulation ended due to over draw on primary account.";
+            }
+            else this.simOutcomeText = `An error has occurred: ${err}`;
         } finally {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
-            this.createReactChartsData();
             console.log("Fin");
         }
     }
@@ -175,30 +185,33 @@ export default class Simulation extends Component {
             }
         }
     }
-    checkFundsAvailabilityAndTransferIfNeeded = () => {
+    checkFundsAvailabilityAndTransferIfNeeded = (amountDue) => {
 
-        if (this.primaryCheckingAccount.balance < this.nonDebtSpendingDaily) {
+        if (this.primaryCheckingAccount.balance < amountDue) {
             // transfer needed
             // first try to transfer a month's worth of daily spend
-            if (this.primarySavingAccount.balance > this.nonDebtSpendingMonthly) {
-                this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, this.nonDebtSpendingMonthly);
+            if (this.primarySavingAccount.balance > this.totalMonthlyBurn) {
+                this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, this.totalMonthlyBurn);
             }
             else {
                 // then try to transfer a week's worth of daily spend
-                var weeklySpendAmount = this.nonDebtSpendingDaily * 7;
+                var weeklySpendAmount = (this.totalMonthlyBurn * 12 / 52);
                 if (this.primarySavingAccount.balance > weeklySpendAmount) {
                     this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, weeklySpendAmount);
                 }
                 else {
-                    // try to transfer daily spend
-                    this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, this.nonDebtSpendingDaily);
+                    // try to transfer amount due
+                    this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, amountDue);
                 }
             }
         }
+        // finally, check to make sure you have enough to cover this bill
+        // in case the amount due was greater than monthly or weekly burn
+        if (this.primaryCheckingAccount.balance < amountDue) this.checkFundsAvailabilityAndTransferIfNeeded(amountDue);
     }
     dailySpend = () => {
-        this.checkFundsAvailabilityAndTransferIfNeeded();
-        this.debitAnAccount(this.dailySpendAccount, this.nonDebtSpendingDaily);
+        this.checkFundsAvailabilityAndTransferIfNeeded(this.budgetSpendingDailly);
+        this.debitAnAccount(this.dailySpendAccount, this.budgetSpendingDailly);
     }
     invest = (fromAccount, toAccount, amount, comment) => {
         if (toAccount.isOpen && fromAccount.isOpen) {
@@ -228,7 +241,8 @@ export default class Simulation extends Component {
             if (toAccount.isOpen == false || toAccount.balance <= 0) {
                 if (comment == "") comment = `Payoff of ${toAccount.nickName}`;
                 else comment += ` | Payoff of ${toAccount.nickName}`;
-                this.totalDebtSpendingMonthly -= toAccount.minPayment;
+                this.totalMonthlyBurn -= toAccount.minPayment;
+                this.billsSpendingMonthly -= toAccount.minPayment;
             }
             this.logPaySchedule(this.simulationRunDate, toAccount.nickName, amountPaid, 0, comment);
         }
@@ -314,12 +328,11 @@ export default class Simulation extends Component {
         e.mostRecentPayday = moment(this.simulationRunDate);
     }
     transferToDailySpendAccount = () => {
-        var amount = this.roundToCurrency(this.nonDebtSpendingMonthly);
+        var amount = this.roundToCurrency(this.budgetSpendingMonthly);
         this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, amount);
     }
     tryToInvestExtra = () => {
-        var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance -
-            this.nonDebtSpendingMonthly - this.totalDebtSpendingMonthly;
+        var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance - this.totalMonthlyBurn;
         if (amountYouCanAffordToInvest > 0) {
             this.invest(this.primaryCheckingAccount, this.newInvestmentsAccount, amountYouCanAffordToInvest, "Investing surpluss cash");
         }
@@ -331,8 +344,7 @@ export default class Simulation extends Component {
             if (a.isOpen) {
                 if (a.rate > this.newInvestmentsAccount.rate) {
                     // if rate is low, put that money in an investment, instead
-                    var amountYouCanAffordToPay = this.primaryCheckingAccount.balance -
-                        this.nonDebtSpendingMonthly - this.totalDebtSpendingMonthly;
+                    var amountYouCanAffordToPay = this.primaryCheckingAccount.balance - this.totalMonthlyBurn;
                     if (amountYouCanAffordToPay > 0) {
                         this.payALoan(this.primaryCheckingAccount, a, amountYouCanAffordToPay, "Extra payment");
                     }
@@ -361,15 +373,22 @@ export default class Simulation extends Component {
         }
     }
     calculateNonDebtSpendingValues = () => {
-        var monthlySpend = 0;
-        var i = 0;
-        for (i = 0; i < this.budgets.length; i++) {
+        var monthlyBudgetSpend = 0;
+        for (var i = 0; i < this.budgets.length; i++) {
             var a = this.budgets[i];
-            monthlySpend += a.amount;
+            monthlyBudgetSpend += a.amount;
         }
-        this.nonDebtSpendingMonthly = monthlySpend;
-        this.nonDebtSpendingDaily = this.roundToCurrency(this.nonDebtSpendingMonthly * 12 / 365.25);
-        //console.log(`nonDebtSpendingDaily: ${this.nonDebtSpendingDaily}`);
+        this.budgetSpendingMonthly = monthlyBudgetSpend;
+        this.totalMonthlyBurn += monthlyBudgetSpend;
+        this.budgetSpendingDailly = this.roundToCurrency(this.budgetSpendingMonthly * 12 / 365.25);
+
+        var monthlyBillsSpend = 0;
+        for (var i = 0; i < this.bills.length; i++) {
+            var a = this.bills[i];
+            monthlyBillsSpend += a.amountDue;
+        }
+        this.billsSpendingMonthly = monthlyBillsSpend;
+        this.totalMonthlyBurn += monthlyBillsSpend;
     }
     fetchAll = async () => {
         this.assetAccounts = await this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
@@ -382,7 +401,7 @@ export default class Simulation extends Component {
         this.debtAccounts = multiSort.multiSort(this.debtAccounts, "rate", false);
         // calculate totalDebtSpendingMonthly
         for (var i = 0; i < this.debtAccounts.length; i++) {
-            this.totalDebtSpendingMonthly += this.debtAccounts[i].minPayment;
+            this.totalMonthlyBurn += this.debtAccounts[i].minPayment;
         }
     }
     multiFetch = async (url) => {
@@ -486,64 +505,6 @@ export default class Simulation extends Component {
         }
         this.worthSchedule.push(worthObject);
     }
-    createReactChartsData = () => {
-        var reactChartsObject = {};
-        reactChartsObject.series = { type: "area" }
-        reactChartsObject.axes = [
-            { primary: true, position: "bottom", type: "time" },
-            { position: "left", type: "linear", stacked: true }
-        ]
-        reactChartsObject.data = [
-            {
-                label: "highRateDebt",
-                data: [
-                    { primary: new Date("2020-10-01"), secondary: -81512.12 },
-                    { primary: new Date("2020-11-01"), secondary: -74904.8 },
-                    { primary: new Date("2020-12-01"), secondary: -71579.79 },
-                    { primary: new Date("2021-01-01"), secondary: -68156.62 },
-                ]
-            },
-            {
-                label: "lowRateDebt",
-                data: [
-                    { primary: new Date("2020-10-01"), secondary: -201345.17 },
-                    { primary: new Date("2020-11-01"), secondary: -200418.79 },
-                    { primary: new Date("2020-12-01"), secondary: -199470.39 },
-                    { primary: new Date("2021-01-01"), secondary: -198538.9 },
-                ]
-            },
-            {
-                label: "taxableAssets",
-                data: [
-                    { primary: new Date("2020-10-01"), secondary: 19879.09 },
-                    { primary: new Date("2020-11-01"), secondary: 20397.6 },
-                    { primary: new Date("2020-12-01"), secondary: 20284.81 },
-                    { primary: new Date("2021-01-01"), secondary: 20051.58 },
-                ]
-            },
-            {
-                label: "taxAdvantagedAssets",
-                data: [
-                    { primary: new Date("2020-10-01"), secondary: 191125.13 },
-                    { primary: new Date("2020-11-01"), secondary: 195025.44 },
-                    { primary: new Date("2020-12-01"), secondary: 197936.97 },
-                    { primary: new Date("2021-01-01"), secondary: 200896.49 },
-                ]
-            },
-            {
-                label: "totalPropertyValue",
-                data: [
-                    { primary: new Date("2020-10-01"), secondary: 308527.46 },
-                    { primary: new Date("2020-11-01"), secondary: 309182.78 },
-                    { primary: new Date("2020-12-01"), secondary: 309818.28 },
-                    { primary: new Date("2021-01-01"), secondary: 310476.34 },
-                ]
-            },
-        ]
-        this.setState({ reactChartsData: reactChartsObject });
-
-
-    }
     compoundDaily = (account) => {
         var interest = account.balance * (account.rate / 365.25);
         account.balance += this.roundToCurrency(interest);
@@ -597,6 +558,35 @@ export default class Simulation extends Component {
         roundVal = roundVal / 100;
         return roundVal;
     }
+    saveSimData = async () => {
+        var nextYearsPaySchedule = [];
+        var twoMonthsFromNow = moment().add(2, 'months');
+
+        for (var i = 0; i < this.paySchedule.length; i++) {
+            var p = this.paySchedule[i];
+            if (moment(p.simulationRunDate).isSameOrBefore(twoMonthsFromNow)) {
+                nextYearsPaySchedule.push(p);
+            }
+        }
+        try {
+            const params = {
+                "simulationId": 'newVal',
+                "householdId": "headerVal",
+                "paySchedule": nextYearsPaySchedule,
+                "worthSchedule": this.worthSchedule
+            };
+            const headers = {
+                'Content-Type': 'application/json',
+                'household-id': this.householdId,
+                'Authorization': `Bearer ${this.token}`
+            };
+            const res = await axios.post(`${config.api.invokeUrlSimulation}/simulations`, params, { headers: headers });
+            console.log(`Response: ${res}`);
+
+        } catch (err) {
+            console.log(`Unable to add simulation: ${err}`);
+        }
+    }
     transferFunds = (fromAccount, toAccount, amount) => {
         var comment = `Transfer from ${fromAccount.nickName} to ${toAccount.nickName} of ${amount}`;
         this.debitAnAccount(fromAccount, amount);
@@ -617,8 +607,8 @@ export default class Simulation extends Component {
 
 
             <div>
-                <WealthAreaChart reactChartsData={this.state.reactChartsData} />
-
+                <WealthAreaChart auth={this.props.auth} />
+                <h1>{this.simOutcomeText}</h1>
                 <div className="table-container">
                     <table className="table">
                         <thead className="thead">
