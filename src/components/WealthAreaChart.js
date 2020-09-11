@@ -1,85 +1,181 @@
-import React from 'react';
+import React, { Component, Fragment } from 'react';
+import axios from "axios";
+import Cookies from 'js-cookie';
+import ResizableBox from './ResizableBox';
 import { Chart } from "react-charts";
-import ResizableBox from "./ResizableBox";
+const config = require('../config.json');
 
-export default function WealthAreaChart(props) {
 
-    const series = React.useMemo(
-        () => ({
-            type: "area"
-        }),
-        []
-    );
-    const axes = React.useMemo(
-        () => [
+
+export default class WealthAreaChart extends Component {
+
+    token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+    
+    state = { 
+        series: {type: "area"},
+        axes: [
             { primary: true, position: "bottom", type: "time" },
             { position: "left", type: "linear", stacked: true }
         ],
-        []
-    );
-    const myOwnData = [
-        {
-            label: "highRateDebt",
-            data: [
-                { primary: new Date("2020-10-01"), secondary: -81512.12 },
-                { primary: new Date("2020-11-01"), secondary: -74904.8 },
-                { primary: new Date("2020-12-01"), secondary: -71579.79 },
-                { primary: new Date("2021-01-01"), secondary: -68156.62 },
-            ]
-        },
-        {
-            label: "lowRateDebt",
-            data: [
-                { primary: new Date("2020-10-01"), secondary: -201345.17 },
-                { primary: new Date("2020-11-01"), secondary: -200418.79 },
-                { primary: new Date("2020-12-01"), secondary: -199470.39 },
-                { primary: new Date("2021-01-01"), secondary: -198538.9 },
-            ]
-        },
-        {
-            label: "taxableAssets",
-            data: [
-                { primary: new Date("2020-10-01"), secondary: 19879.09 },
-                { primary: new Date("2020-11-01"), secondary: 20397.6 },
-                { primary: new Date("2020-12-01"), secondary: 20284.81 },
-                { primary: new Date("2021-01-01"), secondary: 20051.58 },
-            ]
-        },
-        {
-            label: "taxAdvantagedAssets",
-            data: [
-                { primary: new Date("2020-10-01"), secondary: 191125.13 },
-                { primary: new Date("2020-11-01"), secondary: 195025.44 },
-                { primary: new Date("2020-12-01"), secondary: 197936.97 },
-                { primary: new Date("2021-01-01"), secondary: 200896.49 },
-            ]
-        },
-        {
-            label: "totalPropertyValue",
-            data: [
-                { primary: new Date("2020-10-01"), secondary: 308527.46 },
-                { primary: new Date("2020-11-01"), secondary: 309182.78 },
-                { primary: new Date("2020-12-01"), secondary: 309818.28 },
-                { primary: new Date("2021-01-01"), secondary: 310476.34 },
-            ]
-        },
-    ];
+        data: [],
+        householdId: Cookies.get('householdid')
+    }
 
-    //const myOwnData = React.useMemo(() => props.data.data, placeholderData);
+    setPlaceholderData = async () => {
+        const placeholder3 = [
+            {
+                label:"highRateDebt",
+                data:[
+                    {primary: new Date("2020-10-01T00:00:00.000Z"), secondary:-69186.27},
+                    {primary: new Date("2028-10-01T00:00:00.000Z"), secondary:0*-1},
+                    {primary: new Date("2036-10-01T00:00:00.000Z"), secondary:0*-1},
+                    {primary: new Date("2040-10-01T00:00:00.000Z"), secondary:0*-1}
+                    ]
+            },
+            {
+                label:"lowRateDebt",
+                data:[
+                    {primary: new Date("2020-10-01T00:00:00.000Z"), secondary:-201028.64},
+                    {primary: new Date("2028-10-01T00:00:00.000Z"), secondary:-86803.74},
+                    {primary: new Date("2036-10-01T00:00:00.000Z"), secondary:-10},
+                    {primary: new Date("2040-10-01T00:00:00.000Z"), secondary:-0.01}
+                    ]
+            },
+            {
+                label:"taxableAssets",
+                data:[{primary: new Date("2020-10-01T00:00:00.000Z"), secondary:17273.18},
+                    {primary: new Date("2028-10-01T00:00:00.000Z"), secondary:585260.44},
+                    {primary: new Date("2036-10-01T00:00:00.000Z"), secondary:1708552.41},
+                    {primary: new Date("2040-10-01T00:00:00.000Z"), secondary:2563705.41}
+                    ]
+            },{
+                label:"taxAdvantagedAssets",
+                data:[
+                    {primary: new Date("2020-10-01T00:00:00.000Z"), secondary:201133.41},
+                    {primary: new Date("2028-10-01T00:00:00.000Z"), secondary:631372.12},
+                    {primary: new Date("2036-10-01T00:00:00.000Z"), secondary:1330221.21},
+                    {primary: new Date("2040-10-01T00:00:00.000Z"), secondary:1826918.01}
+                    ]
+            },{
+                label:"totalPropertyValue",
+                data:[
+                    {primary: new Date("2020-10-01T00:00:00.000Z"), secondary:308506.34},
+                    {primary: new Date("2028-10-01T00:00:00.000Z"), secondary:376808.03},
+                    {primary: new Date("2036-10-01T00:00:00.000Z"), secondary:437771.17},
+                    {primary: new Date("2040-10-01T00:00:00.000Z"), secondary:508632.31}
+                    ]
+            }
+        ];
+        this.setState({data: placeholder3});
+    }
+    fetchData = async () => {
+        try {
+                
+            var url = `${config.api.invokeUrlSimulation}/simulations`
+            
+            const res = await axios.get(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'household-id': this.state.householdId,
+                    'Authorization': `Bearer ${this.token}`
+                },
+                data: null
+            });
+            
+            const worthSchedule = res.data[0].worthSchedule;
+            var dbData = [];
+            // high rate debt
+            var highRateDebtData = [];
+            for(var i = 0; i < worthSchedule.length; i++){
+                var row = worthSchedule[i];
+                var runDate = row.simulationRunDate;
+                var value = (row.highRateDebt === 0) ? -0.001 : row.highRateDebt;
+                highRateDebtData.push({ primary: new Date(runDate), secondary: value *-1 });
+            }
+            var highRateDebt = {
+                label: "highRateDebt",
+                data: highRateDebtData
+            };
+            dbData.push(highRateDebt);
 
-    return (
-        <section className="hero is-primary">
-            <div className="hero-body">
-                <div className="container">
-                    {/* <p>Props: {JSON.stringify(props.data.data)}</p>
-                    <p>Props: {JSON.stringify(myOwnData)}</p> */}
-                    <ResizableBox>
-                        <Chart data={myOwnData} series={series} axes={axes} tooltip />
+            // low rate debt
+            var lowRateDebtData = [];
+            for(var i = 0; i < worthSchedule.length; i++){
+                var row = worthSchedule[i];
+                var runDate = row.simulationRunDate;
+                var value = (row.lowRateDebt === 0) ? -0.001 : row.lowRateDebt;
+                lowRateDebtData.push({ primary: new Date(runDate), secondary: value *-1 });
+            }
+            var lowRateDebt = {
+                label: "lowRateDebt",
+                data: lowRateDebtData
+            };
+            dbData.push(lowRateDebt);
+
+            // taxable assets
+            var taxableAssetsData = [];
+            for(var i = 0; i < worthSchedule.length; i++){
+                var row = worthSchedule[i];
+                var runDate = row.simulationRunDate;
+                var value = row.taxableAssets;
+                taxableAssetsData.push({ primary: new Date(runDate), secondary: value });
+            }
+            var taxableAssets = {
+                label: "taxableAssets",
+                data: taxableAssetsData
+            };
+            dbData.push(taxableAssets);
+
+             // tax advantaged assets
+             var taxAdvantagedAssetsData = [];
+             for(var i = 0; i < worthSchedule.length; i++){
+                 var row = worthSchedule[i];
+                 var runDate = row.simulationRunDate;
+                 var value = row.taxAdvantagedAssets;
+                 taxAdvantagedAssetsData.push({ primary: new Date(runDate), secondary: value });
+             }
+             var taxAdvantagedAssets = {
+                 label: "taxAdvantagedAssets",
+                 data: taxAdvantagedAssetsData
+             };
+             dbData.push(taxAdvantagedAssets);
+
+            // total property value
+            var totalPropertyValueData = [];
+            for(var i = 0; i < worthSchedule.length; i++){
+                var row = worthSchedule[i];
+                var runDate = row.simulationRunDate;
+                var value = row.totalPropertyValue;
+                totalPropertyValueData.push({ primary: new Date(runDate), secondary: value });
+            }
+            var totalPropertyValue = {
+                label: "totalPropertyValue",
+                data: totalPropertyValueData
+            };
+            dbData.push(totalPropertyValue);
+
+            this.setState({data:dbData});
+            // console.log(`db data: ${JSON.stringify(dbData)}`);
+
+        } catch (err) {
+            console.log(`An error has occurred: ${err}`);
+        }
+    
+    }
+
+    componentDidMount = () => {
+        this.setPlaceholderData();
+        this.fetchData();
+      }
+
+    render() {
+        return (
+            <Fragment>
+                
+                <ResizableBox>
+                        <Chart data={this.state.data} series={this.state.series} axes={this.state.axes} tooltip />
                     </ResizableBox>
-                </div>
-            </div>
-        </section>
-
-
-    )
+            </Fragment>
+        )
+    }
 }

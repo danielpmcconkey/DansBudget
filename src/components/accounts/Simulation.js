@@ -617,7 +617,7 @@ export default class Simulation extends Component {
 
 
             <div>
-                <WealthAreaChart reactChartsData={this.state.reactChartsData} />
+                <WealthAreaChart auth={this.props.auth} />
 
                 <div className="table-container">
                     <table className="table">
