@@ -1,24 +1,27 @@
-import React from 'react';
-import { Chart } from "react-charts";
-import ResizableBox from "./ResizableBox";
+import React, { useState } from 'react';
+import WealthAreaChart from './WealthAreaChart';
+import ResizableBox from './ResizableBox';
+import axios from "axios";
+import Cookies from 'js-cookie';
+import { Auth } from 'aws-amplify';
 
-export default function Hero() {
+const config = require('../config.json');
 
-    const series = React.useMemo(
-        () => ({
-            type: "area"
-        }),
-        []
-    );
-    const axes = React.useMemo(
-        () => [
+
+
+export default function Hero(props) {
+
+    const householdId = Cookies.get('householdid');
+    const token = props.auth.user.signInUserSession.idToken.jwtToken;
+    
+  
+    var reactChartsObject = {};
+        reactChartsObject.series = { type: "area" }
+        reactChartsObject.axes = [
             { primary: true, position: "bottom", type: "time" },
             { position: "left", type: "linear", stacked: true }
-        ],
-        []
-    );
-    const myOwnData = React.useMemo(
-        () => ([
+        ]
+        reactChartsObject.data = [
             {
                 label: "highRateDebt",
                 data: [
@@ -64,10 +67,118 @@ export default function Hero() {
                     { primary: new Date("2021-01-01"), secondary: 310476.34 },
                 ]
             },
-        ]),
-        []
-    );
+        ]
+    
+        const fetchSimulationData = async (setSimDate) => {
+            try {
+                let mounted = true;
+                console.log(`token2: ${JSON.stringify(token)}`);
+                var url = `${config.api.invokeUrlSimulation}/simulations`
+                if(mounted){
+                const res = await axios.get(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'household-id': householdId,
+                        'Authorization': `Bearer ${token}`
+                    },
+                    data: null
+                });
+                console.log(`sim data2: ${JSON.stringify(res.data[0].worthSchedule)}`);
 
+                const worthSchedule = res.data[0].worthSchedule;
+                var dbData = [];
+                // high rate debt
+                var highRateDebtData = [];
+                for(var i = 0; i < worthSchedule.length; i++){
+                    var row = worthSchedule[i];
+                    var runDate = row.simulationRunDate;
+                    var value = row.highRateDebt;
+                    highRateDebtData.push({ primary: new Date(runDate), secondary: value *-1 });
+                }
+                var highRateDebt = {
+                    label: "highRateDebt",
+                    data: highRateDebtData
+                };
+                dbData.push(highRateDebt);
+
+                // low rate debt
+                var lowRateDebtData = [];
+                for(var i = 0; i < worthSchedule.length; i++){
+                    var row = worthSchedule[i];
+                    var runDate = row.simulationRunDate;
+                    var value = row.lowRateDebt;
+                    lowRateDebtData.push({ primary: new Date(runDate), secondary: value *-1 });
+                }
+                var lowRateDebt = {
+                    label: "lowRateDebt",
+                    data: lowRateDebtData
+                };
+                dbData.push(lowRateDebt);
+
+                // taxable assets
+                var taxableAssetsData = [];
+                for(var i = 0; i < worthSchedule.length; i++){
+                    var row = worthSchedule[i];
+                    var runDate = row.simulationRunDate;
+                    var value = row.taxableAssets;
+                    taxableAssetsData.push({ primary: new Date(runDate), secondary: value });
+                }
+                var taxableAssets = {
+                    label: "taxableAssets",
+                    data: taxableAssetsData
+                };
+                dbData.push(taxableAssets);
+
+                 // tax advantaged assets
+                 var taxAdvantagedAssetsData = [];
+                 for(var i = 0; i < worthSchedule.length; i++){
+                     var row = worthSchedule[i];
+                     var runDate = row.simulationRunDate;
+                     var value = row.taxAdvantagedAssets;
+                     taxAdvantagedAssetsData.push({ primary: new Date(runDate), secondary: value });
+                 }
+                 var taxAdvantagedAssets = {
+                     label: "taxAdvantagedAssets",
+                     data: taxAdvantagedAssetsData
+                 };
+                 dbData.push(taxAdvantagedAssets);
+
+                // total property value
+                var totalPropertyValueData = [];
+                for(var i = 0; i < worthSchedule.length; i++){
+                    var row = worthSchedule[i];
+                    var runDate = row.simulationRunDate;
+                    var value = row.totalPropertyValue;
+                    totalPropertyValueData.push({ primary: new Date(runDate), secondary: value });
+                }
+                var totalPropertyValue = {
+                    label: "totalPropertyValue",
+                    data: totalPropertyValueData
+                };
+                dbData.push(totalPropertyValue);
+
+                var reactChartsObject = {};
+                reactChartsObject.series = { type: "area" }
+                reactChartsObject.axes = [
+                    { primary: true, position: "bottom", type: "time" },
+                    { position: "left", type: "linear", stacked: true }
+                ]
+                reactChartsObject.data = dbData;
+                
+                    setSimDate(reactChartsObject);
+                }
+
+                return () => mounted = false;
+    
+            } catch (err) {
+                console.log(`An error has occurred: ${err}`);
+            }
+        }
+
+        var emptyObject = {};
+        const [simData, setSimDate] = useState({ emptyObject });
+        fetchSimulationData(setSimDate);
+        console.log(`sim data: ${JSON.stringify(simData)}`);
     return (
         <section className="hero is-primary">
             <div className="hero-body">
@@ -75,7 +186,7 @@ export default function Hero() {
                     {/* <img src="energy.jpg" alt="conserve energy" /> */}
                     {/* <ChartFunction name="Baloney" /> */}
                     <ResizableBox>
-                        <Chart data={myOwnData} series={series} axes={axes} tooltip />
+                        <WealthAreaChart data={simData} />
                         {/* <Chart data={this.props.} series={} axes={} tooltip /> */}
                     </ResizableBox>
                 </div>

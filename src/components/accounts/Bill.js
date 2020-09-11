@@ -89,7 +89,7 @@ export default class BillAdmin extends Component {
                         </div>
                         : <div>
                             <p className="account-title">{this.props.nickName}</p>
-                            <p className="account-id">min payment: {this.props.amountDue}</p>
+                            <p className="account-id">amount due: {this.props.amountDue}</p>
                             <p className="account-id">last paid date: {this.props.lastPaidDate}</p>
                             <p className="account-id">pay frequency: {this.props.payFrequency}</p>
                             <p className="account-id">ID: {this.props.billId}</p>
