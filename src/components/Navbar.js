@@ -34,6 +34,10 @@ export default class Navbar extends Component {
                     <a className="navbar-item" href="/">
                         Dan's Budget
                      </a>
+                    {/* note: do not put an href in the below anchor, despite what it says in compiler warnings
+                    doing so will break the burger's "expand" ability. the below comment will tell the
+                    compiler to ignore it */}
+                    {/* eslint-disable-next-line */}
                     <a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
