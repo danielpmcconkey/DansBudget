@@ -22,7 +22,7 @@ export default class AssetAccountAdmin extends Component {
             "isTaxAdvantaged": "NO"
         },
         assetAccounts: [],
-        householdId: Cookies.get('householdid'),
+        householdId: 'authVal',
     }
 
     resetNewAssetAccount = async () => {
@@ -123,9 +123,7 @@ export default class AssetAccountAdmin extends Component {
         }
     }
 
-    handleUpdateHouseholdIdCookie = (event) => {
-        Cookies.set('householdid', this.state.householdId, { expires: 365 });
-    }
+
 
     fetchAssetAccounts = async () => {
         //this.addemall();
@@ -154,43 +152,16 @@ export default class AssetAccountAdmin extends Component {
     onBalanceChange = event => this.setState({ newAssetAccount: { ...this.state.newAssetAccount, "balance": event.target.value } });
     onRateChange = event => this.setState({ newAssetAccount: { ...this.state.newAssetAccount, "rate": event.target.value } });
     onIsTaxAdvantagedChange = event => this.setState({ newAssetAccount: { ...this.state.newAssetAccount, "isTaxAdvantaged": event.target.value } });
-    onHouseholdIdChange = (event) => this.setState({ householdId: event.target.value });
 
 
     componentDidMount = () => {
-        // only fetch accounts if authenticated
-        // this isn't true security. authenticate
-        // in lambda, too
+
         this.fetchAssetAccounts();
     }
 
     render() {
         return (
             <Fragment>
-                <section className="section">
-                    <div className="container">
-                        <h3 className="title">Household ID:</h3>
-                        <form onSubmit={event => this.handleUpdateHouseholdIdCookie(event)}>
-                            <div className="field ">
-                                <div className="control">
-                                    <input
-                                        className="input is-medium"
-                                        type="text"
-                                        placeholder="Enter household ID"
-                                        value={this.state.householdId}
-                                        onChange={this.onHouseholdIdChange}
-                                    />
-                                </div>
-                            </div>
-                            <p>
-                                <button type="submit" className="button is-primary is-medium">
-                                    Update household ID
-              </button>
-                            </p>
-                        </form>
-                    </div>
-                </section>
-
                 <section className="section">
                     <div className="container">
                         <h1 className="title is-1">Manage Asset Accounts</h1>

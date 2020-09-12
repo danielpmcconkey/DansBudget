@@ -19,7 +19,7 @@ export default class PropertyAdmin extends Component {
       "housingValueIncreaseRate": ""
     },
     properties: [],
-    householdId: Cookies.get('householdid'),
+    householdId: 'authVal',
   }
 
   resetNewProperty = async () => {
@@ -114,9 +114,7 @@ export default class PropertyAdmin extends Component {
     }
   }
 
-  handleUpdateHouseholdIdCookie = (event) => {
-    Cookies.set('householdid', this.state.householdId, { expires: 365 });
-  }
+
 
   fetchProperties = async () => {
     try {
@@ -146,42 +144,18 @@ export default class PropertyAdmin extends Component {
   onNickNameChange = event => this.setState({ newProperty: { ...this.state.newProperty, "nickName": event.target.value } });
   onHomeValueChange = event => this.setState({ newProperty: { ...this.state.newProperty, "homeValue": event.target.value } });
   onHousingValueIncreaseRateChange = event => this.setState({ newProperty: { ...this.state.newProperty, "housingValueIncreaseRate": event.target.value } });
-  onHouseholdIdChange = (event) => this.setState({ householdId: event.target.value });
+
 
 
   componentDidMount = () => {
-    // only fetch accounts if authenticated
-    // this isn't true security. authenticate
-    // in lambda, too
+
     this.fetchProperties();
   }
 
   render() {
     return (
       <Fragment>
-        <section className="section">
-          <div className="container">
-            <h3 className="title">Household ID:</h3>
-            <form onSubmit={event => this.handleUpdateHouseholdIdCookie(event)}>
-              <div className="field ">
-                <div className="control">
-                  <input
-                    className="input is-medium"
-                    type="text"
-                    placeholder="Enter household ID"
-                    value={this.state.householdId}
-                    onChange={this.onHouseholdIdChange}
-                  />
-                </div>
-              </div>
-              <p>
-                <button type="submit" className="button is-primary is-medium">
-                  Update household ID
-              </button>
-              </p>
-            </form>
-          </div>
-        </section>
+
 
         <section className="section">
           <div className="container">

@@ -18,7 +18,7 @@ export default class WealthAreaChart extends Component {
             { position: "left", type: "linear", stacked: true }
         ],
         data: [],
-        householdId: Cookies.get('householdid')
+        householdId: 'authVal'
     }
 
     setPlaceholderData = async () => {
@@ -69,9 +69,9 @@ export default class WealthAreaChart extends Component {
         this.setState({ data: placeholder3 });
     }
     getMostRecentDataFromDBReturn = (dbReturn) => {
-        var latestReport = dbReturn[0]; 
-        for(var i = 0; i < dbReturn.length; i++){
-            if(dbReturn[i].runTime > latestReport.runTime) latestReport = dbReturn[i];
+        var latestReport = dbReturn[0];
+        for (var i = 0; i < dbReturn.length; i++) {
+            if (dbReturn[i].runTime > latestReport.runTime) latestReport = dbReturn[i];
         }
         return latestReport;
     }
