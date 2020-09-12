@@ -4,6 +4,9 @@ import NumberFormat from 'react-number-format';
 import axios from "axios";
 import Cookies from 'js-cookie';
 import WealthAreaChart from '../WealthAreaChart';
+import LoaderSpinner from '../LoaderSpinner';
+import PayScheduleTable from '../PayScheduleTable';
+import WorthScheduleTable from '../WorthScheduleTable';
 const config = require('../../config.json');
 const moment = require('moment');
 const multiSort = require('./multiSort');
@@ -17,7 +20,9 @@ export default class Simulation extends Component {
         simOutcomeText: "",
         debugMessages: [],
         payScheduleStateful: [],
-        worthScheduleStateful: []
+        worthScheduleStateful: [],
+        reactChartsData: {},
+        isLoading: true
     }
     /* #region sim properties */
     assetAccounts = [];
@@ -35,38 +40,35 @@ export default class Simulation extends Component {
     dailySpendAccount = {};
     newInvestmentsAccount = {};
     primarySavingAccount = {};
-    simulationRunDate = moment("2020-09-08");
+    simulationRunDate = moment();
     endDate = moment("2041-01-01");
     paySchedule = [];
     worthSchedule = [];
-    budgetSpendingMonthly = 0;
-    billsSpendingMonthly = 0;
-    budgetSpendingDailly = 0;
+    billsMonthlySpend = 0;
+    budgetsMonthlySpend = 0;
+    budgetsDailySpend = 0;
+    debtMonthlySpend = 0;
     totalDebtInterestAccrual = 0;
-    totalMonthlyBurn = 0;
 
     /* #endregion */
     runSim = async () => {
         try {
             await this.setup();
-
             var simMonthlyCycleDay = moment().date();
             if (simMonthlyCycleDay > 28) simMonthlyCycleDay = 28; // not all months have a 29th day
             var firstDayOfSim = true;
 
 
             while (this.simulationRunDate <= this.endDate) {
-
-                this.accrueInterest();
-                this.checkForPayDay();
-                this.checkForBonus();
-
                 // run at the beginning and every month thereafter
                 if (firstDayOfSim || this.simulationRunDate.date() == simMonthlyCycleDay) {
                     this.transferToDailySpendAccount();
                 }
 
                 this.dailySpend();
+                this.accrueInterest();
+                this.checkForPayDay();
+                this.checkForBonus();
                 this.payBills();
 
                 if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() == 1)  // last day of the month
@@ -87,20 +89,17 @@ export default class Simulation extends Component {
             // save sim data
             await this.saveSimData();
             this.simOutcomeText = "Simulation successful"
+            
 
 
 
         } catch (err) {
-            var errorMessage = `An error has occurred: ${err}`;
-            console.log(errorMessage);
-            if (err.toString().startsWith("Overdrawn on account")) {
-                this.simOutcomeText = "Simulation ended due to over draw on primary account.";
-            }
-            else this.simOutcomeText = `An error has occurred: ${err}`;
+            console.log(`An error has occurred: ${err}`);
         } finally {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
             console.log("Fin");
+            this.setState({isLoading: false});
         }
     }
     /* #region simulation functions */
@@ -185,33 +184,42 @@ export default class Simulation extends Component {
             }
         }
     }
-    checkFundsAvailabilityAndTransferIfNeeded = (amountDue) => {
+    checkFundsAvailabilityAndTransferIfNeededChecking = (amountDue) => {
 
         if (this.primaryCheckingAccount.balance < amountDue) {
             // transfer needed
-            // first try to transfer a month's worth of daily spend
-            if (this.primarySavingAccount.balance > this.totalMonthlyBurn) {
-                this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, this.totalMonthlyBurn);
+            var oneMonthsBurn = this.billsMonthlySpend + this.budgetsMonthlySpend + this.debtMonthlySpend;
+            var oneWeeksBurn = oneMonthsBurn * 12 / 52;
+            // first try to transfer a month's worth of burn rate
+            if (this.primarySavingAccount.balance > oneMonthsBurn) {
+                this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, oneMonthsBurn);
             }
             else {
-                // then try to transfer a week's worth of daily spend
-                var weeklySpendAmount = (this.totalMonthlyBurn * 12 / 52);
-                if (this.primarySavingAccount.balance > weeklySpendAmount) {
-                    this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, weeklySpendAmount);
+                // then try to transfer a week's worth of burn
+                if (this.primarySavingAccount.balance > oneWeeksBurn) {
+                    this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, oneWeeksBurn);
                 }
                 else {
-                    // try to transfer amount due
+                    // try to transfer the amount Due
                     this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, amountDue);
                 }
             }
+            // finally, check to make sure you have enough to cover this bill
+            // in case the amount due was greater than monthly or weekly burn
+            if (this.primaryCheckingAccount.balance < amountDue) this.checkFundsAvailabilityAndTransferIfNeededChecking(amountDue);
         }
-        // finally, check to make sure you have enough to cover this bill
-        // in case the amount due was greater than monthly or weekly burn
-        if (this.primaryCheckingAccount.balance < amountDue) this.checkFundsAvailabilityAndTransferIfNeeded(amountDue);
+    }
+    checkFundsAvailabilityAndTransferIfNeededSpend = () => {
+
+        if (this.dailySpendAccount.balance < this.budgetsDailySpend) {
+            // transfer needed. only transfer one day's worth as we have a regular transfer schedule already
+            this.checkFundsAvailabilityAndTransferIfNeededChecking(this.budgetsDailySpend);
+            this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, this.budgetsDailySpend);
+        }
     }
     dailySpend = () => {
-        this.checkFundsAvailabilityAndTransferIfNeeded(this.budgetSpendingDailly);
-        this.debitAnAccount(this.dailySpendAccount, this.budgetSpendingDailly);
+        this.checkFundsAvailabilityAndTransferIfNeededSpend();
+        this.debitAnAccount(this.dailySpendAccount, this.nonDebtSpendingDaily);
     }
     invest = (fromAccount, toAccount, amount, comment) => {
         if (toAccount.isOpen && fromAccount.isOpen) {
@@ -241,8 +249,7 @@ export default class Simulation extends Component {
             if (toAccount.isOpen == false || toAccount.balance <= 0) {
                 if (comment == "") comment = `Payoff of ${toAccount.nickName}`;
                 else comment += ` | Payoff of ${toAccount.nickName}`;
-                this.totalMonthlyBurn -= toAccount.minPayment;
-                this.billsSpendingMonthly -= toAccount.minPayment;
+                this.debtMonthlySpend -= toAccount.minPayment;
             }
             this.logPaySchedule(this.simulationRunDate, toAccount.nickName, amountPaid, 0, comment);
         }
@@ -274,7 +281,7 @@ export default class Simulation extends Component {
                         break;
                 }
                 if (isDue) {
-                    this.checkFundsAvailabilityAndTransferIfNeeded(a.amountDue);
+                    this.checkFundsAvailabilityAndTransferIfNeededChecking(a.amountDue);
                     this.payABill(this.primaryCheckingAccount, a, a.amountDue, "Average monthly due");
                 }
 
@@ -305,7 +312,7 @@ export default class Simulation extends Component {
                         break;
                 }
                 if (isDue) {
-                    this.checkFundsAvailabilityAndTransferIfNeeded(a.minPayment);
+                    this.checkFundsAvailabilityAndTransferIfNeededChecking(a.minPayment);
                     this.payALoan(this.primaryCheckingAccount, a, a.minPayment, "Minimum payment");
                 }
 
@@ -328,11 +335,12 @@ export default class Simulation extends Component {
         e.mostRecentPayday = moment(this.simulationRunDate);
     }
     transferToDailySpendAccount = () => {
-        var amount = this.roundToCurrency(this.budgetSpendingMonthly);
+        var amount = this.roundToCurrency(this.budgetsMonthlySpend);
         this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, amount);
     }
     tryToInvestExtra = () => {
-        var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance - this.totalMonthlyBurn;
+        var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance -
+            this.billsMonthlySpend - this.budgetsMonthlySpend - this.debtMonthlySpend;
         if (amountYouCanAffordToInvest > 0) {
             this.invest(this.primaryCheckingAccount, this.newInvestmentsAccount, amountYouCanAffordToInvest, "Investing surpluss cash");
         }
@@ -344,7 +352,8 @@ export default class Simulation extends Component {
             if (a.isOpen) {
                 if (a.rate > this.newInvestmentsAccount.rate) {
                     // if rate is low, put that money in an investment, instead
-                    var amountYouCanAffordToPay = this.primaryCheckingAccount.balance - this.totalMonthlyBurn;
+                    var amountYouCanAffordToPay = this.primaryCheckingAccount.balance -
+                        this.budgetsMonthlySpend - this.billsMonthlySpend - this.debtMonthlySpend;
                     if (amountYouCanAffordToPay > 0) {
                         this.payALoan(this.primaryCheckingAccount, a, amountYouCanAffordToPay, "Extra payment");
                     }
@@ -372,23 +381,27 @@ export default class Simulation extends Component {
             }
         }
     }
-    calculateNonDebtSpendingValues = () => {
-        var monthlyBudgetSpend = 0;
-        for (var i = 0; i < this.budgets.length; i++) {
+    calculateBurnRates = () => {
+        var i = 0;
+        // first budgets
+        for (i = 0; i < this.budgets.length; i++) {
             var a = this.budgets[i];
-            monthlyBudgetSpend += a.amount;
+            this.budgetsMonthlySpend += a.amount;
         }
-        this.budgetSpendingMonthly = monthlyBudgetSpend;
-        this.totalMonthlyBurn += monthlyBudgetSpend;
-        this.budgetSpendingDailly = this.roundToCurrency(this.budgetSpendingMonthly * 12 / 365.25);
-
-        var monthlyBillsSpend = 0;
-        for (var i = 0; i < this.bills.length; i++) {
+        this.budgetsDailySpend = this.roundToCurrency(this.budgetsMonthlySpend * 12 / 365.25);
+        
+        // then bills
+        for (i = 0; i < this.bills.length; i++) {
             var a = this.bills[i];
-            monthlyBillsSpend += a.amountDue;
+            this.billsMonthlySpend += a.amountDue;
         }
-        this.billsSpendingMonthly = monthlyBillsSpend;
-        this.totalMonthlyBurn += monthlyBillsSpend;
+        this.billssDailySpend = this.roundToCurrency(this.billsMonthlySpend * 12 / 365.25);
+        
+        // then debts
+        for (i = 0; i < this.debtAccounts.length; i++) {
+            var a = this.debtAccounts[i];
+            this.debtMonthlySpend += a.minPayment;
+        }
     }
     fetchAll = async () => {
         this.assetAccounts = await this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
@@ -399,9 +412,9 @@ export default class Simulation extends Component {
         this.employers = await this.multiFetch(`${config.api.invokeUrlEmployer}/employers`);
         // sort debts by balance decending so you pay the highest off first
         this.debtAccounts = multiSort.multiSort(this.debtAccounts, "rate", false);
-        // calculate totalDebtSpendingMonthly
+        // calculate debtMonthlySpend
         for (var i = 0; i < this.debtAccounts.length; i++) {
-            this.totalMonthlyBurn += this.debtAccounts[i].minPayment;
+            this.debtMonthlySpend += this.debtAccounts[i].minPayment;
         }
     }
     multiFetch = async (url) => {
@@ -446,7 +459,7 @@ export default class Simulation extends Component {
         // fetch all data from DB and assign it to this
         await this.fetchAll();
         this.setAllDatesToMidnight();
-        this.calculateNonDebtSpendingValues();
+        this.calculateBurnRates();
         this.assignHouseholdAccounts();
 
     }
@@ -472,9 +485,8 @@ export default class Simulation extends Component {
 
         var highRateDebt = 0;
         var lowRateDebt = 0;
-        var taxableAssets = 0;
         var taxAdvantagedAssets = 0;
-        var taxableAssets = 0;
+        var taxableAssets2 = 0;
         var totalPropertyValue = 0;
         var totalNetWorth = 0;
 
@@ -485,20 +497,26 @@ export default class Simulation extends Component {
         }
         for (var i = 0; i < this.assetAccounts.length; i++) {
             var a = this.assetAccounts[i];
-            if (a.isTaxAdvantaged == "NO") taxableAssets += a.balance;
+            if (a.isTaxAdvantaged === "NO") {
+                if(a.balance > 0) taxableAssets2 += a.balance;
+                else if(a.balance < 0 || a.balance == null || a.balance == undefined) throw 'baloney2';
+            }
             else taxAdvantagedAssets += a.balance;
 
         }
         for (var i = 0; i < this.properties.length; i++) {
             totalPropertyValue += this.properties[i].homeValue;
         }
-        totalNetWorth = taxableAssets + taxAdvantagedAssets + totalPropertyValue - highRateDebt - lowRateDebt;
+        //taxableAssets = 17;
+        totalNetWorth = taxableAssets2 + taxAdvantagedAssets + totalPropertyValue - highRateDebt - lowRateDebt;
+        //totalNetWorth = 10.7;
+        //if(totalNetWorth == null || totalNetWorth == undefined) throw `burp + ${JSON.stringify(this.assetAccounts)}`;
         var worthObject = {
             key: this.worthSchedule.length,
             simulationRunDate: this.simulationRunDate.format("YYYY-MM-DD"),
             highRateDebt: this.roundToCurrency(highRateDebt),
             lowRateDebt: this.roundToCurrency(lowRateDebt),
-            taxableAssets: this.roundToCurrency(taxableAssets),
+            taxableAssets: this.roundToCurrency(taxableAssets2),
             taxAdvantagedAssets: this.roundToCurrency(taxAdvantagedAssets),
             totalPropertyValue: this.roundToCurrency(totalPropertyValue),
             netWorth: this.roundToCurrency(totalNetWorth),
@@ -607,74 +625,9 @@ export default class Simulation extends Component {
 
 
             <div>
-                <WealthAreaChart auth={this.props.auth} />
-                <h1>{this.simOutcomeText}</h1>
-                <div className="table-container">
-                    <table className="table">
-                        <thead className="thead">
-                            <tr>
-                                <th>Key</th><th>Date</th>
-                                <th>Account</th>
-                                <th>Debits</th>
-                                <th>Credits</th>
-                                <th>Primary checking balance</th>
-                                <th>Primary savings balance</th>
-                                <th>Comments</th>
-                            </tr>
-                        </thead>
-                        <tbody>{this.state.payScheduleStateful.map(function (item, key) {
-
-                            return (
-                                <tr key={key}>
-                                    <td>{key}</td>
-                                    <td>{item.simulationRunDate}</td>
-                                    <td>{item.accountName}</td>
-                                    <td><NumberFormat value={item.debits} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.credits} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.checkingBal} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.savingsBal} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td>{item.comment}</td>
-                                </tr>
-                            )
-
-                        })}</tbody>
-                    </table>
-
-                </div>
-                <div className="table-container">
-                    <table className="table">
-                        <thead className="thead">
-                            <tr>
-                                <th>Key</th>
-                                <th>Date</th>
-                                <th>NetWorth</th>
-                                <th>High-rate debt</th>
-                                <th>Low-rate debt</th>
-                                <th>Taxable assets</th>
-                                <th>Tax advantaged assets</th>
-                                <th>Property value</th>
-                            </tr>
-                        </thead>
-                        <tbody>{this.state.worthScheduleStateful.map(function (item, key) {
-
-                            return (
-                                <tr key={key}>
-                                    <td>{key}</td>
-                                    <td>{item.simulationRunDate}</td>
-                                    <td><NumberFormat value={item.netWorth} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.highRateDebt} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.lowRateDebt} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.taxableAssets} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.taxAdvantagedAssets} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                    <td><NumberFormat value={item.totalPropertyValue} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
-                                </tr>
-                            )
-
-                        })}</tbody>
-                    </table>
-
-                </div>
-
+                {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
+                {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
+                {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
             </div>
 
 

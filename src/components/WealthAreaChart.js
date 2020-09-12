@@ -68,6 +68,13 @@ export default class WealthAreaChart extends Component {
         ];
         this.setState({ data: placeholder3 });
     }
+    getMostRecentDataFromDBReturn = (dbReturn) => {
+        var latestReport = dbReturn[0]; 
+        for(var i = 0; i < dbReturn.length; i++){
+            if(dbReturn[i].runTime > latestReport.runTime) latestReport = dbReturn[i];
+        }
+        return latestReport;
+    }
     fetchData = async () => {
         try {
 
@@ -83,7 +90,7 @@ export default class WealthAreaChart extends Component {
             });
 
             if (res.data != undefined) {
-                const worthSchedule = res.data[0].worthSchedule;
+                const worthSchedule = this.getMostRecentDataFromDBReturn(res.data).worthSchedule;
                 var dbData = [];
                 // high rate debt
                 var highRateDebtData = [];

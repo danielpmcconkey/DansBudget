@@ -71,10 +71,10 @@ export default function Hero(props) {
     
         const fetchSimulationData = async (setSimDate) => {
             try {
-                let mounted = true;
+                
                 console.log(`token2: ${JSON.stringify(token)}`);
                 var url = `${config.api.invokeUrlSimulation}/simulations`
-                if(mounted){
+                
                 const res = await axios.get(url, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -164,11 +164,10 @@ export default function Hero(props) {
                     { position: "left", type: "linear", stacked: true }
                 ]
                 reactChartsObject.data = dbData;
+                setSimDate(reactChartsObject);
                 
-                    setSimDate(reactChartsObject);
-                }
 
-                return () => mounted = false;
+                return;
     
             } catch (err) {
                 console.log(`An error has occurred: ${err}`);
