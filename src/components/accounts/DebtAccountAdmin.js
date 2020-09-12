@@ -23,7 +23,7 @@ export default class DebtAccountAdmin extends Component {
       "payFrequency": "MONTHLY"
     },
     debtAccounts: [],
-    householdId: Cookies.get('householdid'),
+    householdId: 'authVal',
   }
 
   resetNewDebtAccount = async () => {
@@ -133,9 +133,7 @@ export default class DebtAccountAdmin extends Component {
     }
   }
 
-  handleUpdateHouseholdIdCookie = (event) => {
-    Cookies.set('householdid', this.state.householdId, { expires: 365 });
-  }
+
 
   fetchDebtAccounts = async () => {
     //this.addemall();
@@ -169,42 +167,18 @@ export default class DebtAccountAdmin extends Component {
   onMinPaymentChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "minPayment": event.target.value } });
   onLastPaidDateChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "lastPaidDate": event.target.value } });
   onPayFrequencyChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "payFrequency": event.target.value } });
-  onHouseholdIdChange = (event) => this.setState({ householdId: event.target.value });
+
 
 
   componentDidMount = () => {
-    // only fetch accounts if authenticated
-    // this isn't true security. authenticate
-    // in lambda, too
+
     this.fetchDebtAccounts();
   }
 
   render() {
     return (
       <Fragment>
-        <section className="section">
-          <div className="container">
-            <h3 className="title">Household ID:</h3>
-            <form onSubmit={event => this.handleUpdateHouseholdIdCookie(event)}>
-              <div className="field ">
-                <div className="control">
-                  <input
-                    className="input is-medium"
-                    type="text"
-                    placeholder="Enter household ID"
-                    value={this.state.householdId}
-                    onChange={this.onHouseholdIdChange}
-                  />
-                </div>
-              </div>
-              <p>
-                <button type="submit" className="button is-primary is-medium">
-                  Update household ID
-              </button>
-              </p>
-            </form>
-          </div>
-        </section>
+
 
         <section className="section">
           <div className="container">

@@ -31,7 +31,7 @@ export default class Simulation extends Component {
     budgets = [];
     properties = [];
     employers = [];
-    householdId = Cookies.get('householdid');
+    householdId = "authVal";
     primaryCheckingAccountId = "bec16915-06f6-4e09-b472-c54fbb0880d8";
     dailySpendAccountId = "c9fefac5-2d5e-4de2-9f88-89d343738f08";
     newInvestmentsAccountId = "8adbbfdc-ae66-4caf-809c-4c132a772c70";
@@ -89,7 +89,7 @@ export default class Simulation extends Component {
             // save sim data
             await this.saveSimData();
             this.simOutcomeText = "Simulation successful"
-            
+
 
 
 
@@ -99,7 +99,7 @@ export default class Simulation extends Component {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
             console.log("Fin");
-            this.setState({isLoading: false});
+            this.setState({ isLoading: false });
         }
     }
     /* #region simulation functions */
@@ -389,14 +389,14 @@ export default class Simulation extends Component {
             this.budgetsMonthlySpend += a.amount;
         }
         this.budgetsDailySpend = this.roundToCurrency(this.budgetsMonthlySpend * 12 / 365.25);
-        
+
         // then bills
         for (i = 0; i < this.bills.length; i++) {
             var a = this.bills[i];
             this.billsMonthlySpend += a.amountDue;
         }
         this.billssDailySpend = this.roundToCurrency(this.billsMonthlySpend * 12 / 365.25);
-        
+
         // then debts
         for (i = 0; i < this.debtAccounts.length; i++) {
             var a = this.debtAccounts[i];
@@ -498,8 +498,8 @@ export default class Simulation extends Component {
         for (var i = 0; i < this.assetAccounts.length; i++) {
             var a = this.assetAccounts[i];
             if (a.isTaxAdvantaged === "NO") {
-                if(a.balance > 0) taxableAssets2 += a.balance;
-                else if(a.balance < 0 || a.balance == null || a.balance == undefined) throw 'baloney2';
+                if (a.balance > 0) taxableAssets2 += a.balance;
+                else if (a.balance < 0 || a.balance == null || a.balance == undefined) throw 'baloney2';
             }
             else taxAdvantagedAssets += a.balance;
 

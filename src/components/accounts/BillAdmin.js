@@ -22,7 +22,7 @@ export default class BillAdmin extends Component {
       "payFrequency": "MONTHLY"
     },
     bills: [],
-    householdId: Cookies.get('householdid'),
+    householdId: 'authVal',
   }
 
   resetNewBill = async () => {
@@ -125,9 +125,7 @@ export default class BillAdmin extends Component {
     }
   }
 
-  handleUpdateHouseholdIdCookie = (event) => {
-    Cookies.set('householdid', this.state.householdId, { expires: 365 });
-  }
+
 
   fetchBills = async () => {
     //this.addemall();
@@ -159,42 +157,17 @@ export default class BillAdmin extends Component {
   onAmountDueChange = event => this.setState({ newBill: { ...this.state.newBill, "amountDue": event.target.value } });
   onLastPaidDateChange = event => this.setState({ newBill: { ...this.state.newBill, "lastPaidDate": event.target.value } });
   onPayFrequencyChange = event => this.setState({ newBill: { ...this.state.newBill, "payFrequency": event.target.value } });
-  onHouseholdIdChange = (event) => this.setState({ householdId: event.target.value });
 
 
   componentDidMount = () => {
-    // only fetch accounts if authenticated
-    // this isn't true security. authenticate
-    // in lambda, too
+
     this.fetchBills();
   }
 
   render() {
     return (
       <Fragment>
-        <section className="section">
-          <div className="container">
-            <h3 className="title">Household ID:</h3>
-            <form onSubmit={event => this.handleUpdateHouseholdIdCookie(event)}>
-              <div className="field ">
-                <div className="control">
-                  <input
-                    className="input is-medium"
-                    type="text"
-                    placeholder="Enter household ID"
-                    value={this.state.householdId}
-                    onChange={this.onHouseholdIdChange}
-                  />
-                </div>
-              </div>
-              <p>
-                <button type="submit" className="button is-primary is-medium">
-                  Update household ID
-              </button>
-              </p>
-            </form>
-          </div>
-        </section>
+
 
         <section className="section">
           <div className="container">

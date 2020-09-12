@@ -19,7 +19,7 @@ export default class BudgetAdmin extends Component {
       "amount": ""
     },
     budgets: [],
-    householdId: Cookies.get('householdid'),
+    householdId: 'authVal',
   }
 
   resetNewBudget = async () => {
@@ -111,9 +111,7 @@ export default class BudgetAdmin extends Component {
     }
   }
 
-  handleUpdateHouseholdIdCookie = (event) => {
-    Cookies.set('householdid', this.state.householdId, { expires: 365 });
-  }
+
 
   fetchBudgets = async () => {
     //this.addemall();
@@ -143,42 +141,15 @@ export default class BudgetAdmin extends Component {
 
   onNickNameChange = event => this.setState({ newBudget: { ...this.state.newBudget, "nickName": event.target.value } });
   onAmountChange = event => this.setState({ newBudget: { ...this.state.newBudget, "amount": event.target.value } });
-  onHouseholdIdChange = (event) => this.setState({ householdId: event.target.value });
-
 
   componentDidMount = () => {
-    // only fetch accounts if authenticated
-    // this isn't true security. authenticate
-    // in lambda, too
     this.fetchBudgets();
   }
 
   render() {
     return (
       <Fragment>
-        <section className="section">
-          <div className="container">
-            <h3 className="title">Household ID:</h3>
-            <form onSubmit={event => this.handleUpdateHouseholdIdCookie(event)}>
-              <div className="field ">
-                <div className="control">
-                  <input
-                    className="input is-medium"
-                    type="text"
-                    placeholder="Enter household ID"
-                    value={this.state.householdId}
-                    onChange={this.onHouseholdIdChange}
-                  />
-                </div>
-              </div>
-              <p>
-                <button type="submit" className="button is-primary is-medium">
-                  Update household ID
-              </button>
-              </p>
-            </form>
-          </div>
-        </section>
+
 
         <section className="section">
           <div className="container">
