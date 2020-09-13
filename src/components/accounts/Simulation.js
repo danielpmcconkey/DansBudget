@@ -553,6 +553,19 @@ export default class Simulation extends Component {
             throw new Error(`Overdrawn on account ${account.nickName}`);
         }
     }
+    formatMoney = (number) => {
+        var decPlaces = 2;
+        var decSep = ".";
+        var thouSep = ",";
+        var sign = number < 0 ? "-" : "";
+        var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
+        var j = (j = i.length) > 3 ? j % 3 : 0;
+
+        return sign +
+            (j ? i.substr(0, j) + thouSep : "") +
+            i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
+            (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+    }
     logPaySchedule = (inDate, accountName, debits, credits, comment) => {
         var logObject = {
             key: this.paySchedule.length,
@@ -616,7 +629,7 @@ export default class Simulation extends Component {
         }
     }
     transferFunds = (fromAccount, toAccount, amount) => {
-        var comment = `Transfer from ${fromAccount.nickName} to ${toAccount.nickName} of ${amount}`;
+        var comment = `Transfer from ${fromAccount.nickName} to ${toAccount.nickName} of $${this.formatMoney(amount)}`;
         this.debitAnAccount(fromAccount, amount);
         toAccount.balance += amount;
         this.logPaySchedule(this.simulationRunDate, "Internal transfer", amount, amount, comment);

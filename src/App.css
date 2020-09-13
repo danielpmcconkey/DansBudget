@@ -55,3 +55,10 @@ body {
 }
 
 /* .buttons { margin-left:1em;} */
+
+.UpcomingItemsTransfer { color: #888;}
+.UpcomingItemsOrdinaryPayment { color: #888;}
+.UpcomingItemsPayDay { color: #008800;}
+.UpcomingItemsPayoff { color: #0000aa; font-weight: bold;}
+.UpcomingItemsExtraPayment { color: #880000;}
+.UpcomingItemsUnknown {color: #ff6663}
