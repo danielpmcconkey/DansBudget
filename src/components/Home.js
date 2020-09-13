@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react';
 import Hero from './Hero';
-import HomeContent from './HomeContent';
 import UpcomingItems from './UpcomingItems';
 
 export default function Home(props) {
@@ -12,7 +11,6 @@ export default function Home(props) {
                     <UpcomingItems auth={props.auth} />
                 </div>
             </div>
-            <HomeContent />
         </Fragment>
     )
 }

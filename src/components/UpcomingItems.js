@@ -12,14 +12,6 @@ export default class UpcomingItems extends Component {
         allRowsStateful: [],
     }
     allRows = [];
-    // allRows = [
-    //     {
-    //         key: 0,
-    //         activityDate: "activityDate",
-    //         humanReadableMessage: "humanReadableMessage",
-    //         cssClassName: "cssClassName"
-    //     }
-    // ];
 
     getMostRecentDataFromDBReturn = (dbReturn) => {
         var latestReport = dbReturn[0];
@@ -34,7 +26,8 @@ export default class UpcomingItems extends Component {
         var thouSep = ",";
         var sign = number < 0 ? "-" : "";
         var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
-        var j = (j = i.length) > 3 ? j % 3 : 0;
+        var j = 0;
+        j = (j = i.length) > 3 ? j % 3 : 0;
 
         return sign +
             (j ? i.substr(0, j) + thouSep : "") +
@@ -60,7 +53,7 @@ export default class UpcomingItems extends Component {
 
                 // set up time bindings
                 var earliestTime = moment().subtract(7, 'day');
-                var latestTime = moment().add(14, 'day');
+                var latestTime = moment().add(21, 'day');
 
 
                 // iterate through payment schedule and display those within the time bindings
