@@ -7,9 +7,10 @@ const config = require('../../config.json');
 
 export default class DebtAccountAdmin extends Component {
 
-  token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+  token = "";
 
   state = {
+    isUserAuthenticated: false,
     newDebtAccount: {
       "debtAccountid": "",
       "balance": "",
@@ -40,7 +41,6 @@ export default class DebtAccountAdmin extends Component {
       }
     });
   }
-
   handleAddDebtAccount = async (debtAccountId, event) => {
     event.preventDefault();
     try {
@@ -70,7 +70,6 @@ export default class DebtAccountAdmin extends Component {
       console.log(`Unable to add debt account: ${err}`);
     }
   }
-
   handleUpdateDebtAccount = async (debtAccountId, nickName, balance, rate, minPayment, lastPaidDate, payFrequency) => {
 
     try {
@@ -109,7 +108,6 @@ export default class DebtAccountAdmin extends Component {
       console.log(`Unable to update debt account: ${err}`);
     }
   }
-
   handleDeleteDebtAccount = async (debtAccountId, event) => {
     event.preventDefault();
 
@@ -131,9 +129,6 @@ export default class DebtAccountAdmin extends Component {
       }
     }
   }
-
-
-
   fetchDebtAccounts = async () => {
     //this.addemall();
     try {
@@ -166,132 +161,136 @@ export default class DebtAccountAdmin extends Component {
   onMinPaymentChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "minPayment": event.target.value } });
   onLastPaidDateChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "lastPaidDate": event.target.value } });
   onPayFrequencyChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "payFrequency": event.target.value } });
-
-
-
   componentDidMount = () => {
-
-    this.fetchDebtAccounts();
+    if (this.props.auth.user !== null) {
+      this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+      this.setState(
+        { isUserAuthenticated: true }
+      );
+      this.fetchDebtAccounts();
+    }
   }
 
   render() {
     return (
       <Fragment>
+        {this.state.isUserAuthenticated ?
 
+          <section className="section">
+            <div className="container">
+              <h1 className="title is-1">Manage Debt Accounts</h1>
 
-        <section className="section">
-          <div className="container">
-            <h1 className="title is-1">Manage Debt Accounts</h1>
+              <div className="columns">
+                <div className="column is-one-third has-background-grey-lighter">
+                  <form onSubmit={event => this.handleAddDebtAccount(this.state.newDebtAccount.debtAccountId, event)}>
+                    <p className="subtitle is-5">Add a new debt account using the form below:</p>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter name</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newDebtAccount.nickName}
+                          onChange={this.onNickNameChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter current balance</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newDebtAccount.balance}
+                          onChange={this.onBalanceChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter interest rate</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newDebtAccount.rate}
+                          onChange={this.onRateChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter minimum payment</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newDebtAccount.minPayment}
+                          onChange={this.onMinPaymentChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter last payment date</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newDebtAccount.lastPaidDate}
+                          onChange={this.onLastPaidDateChange}
+                          placeholder="YYYY-MM-DD"
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter pay frequency</p>
+                        <select
+                          className="select is-medium"
+                          value={this.state.newDebtAccount.payFrequency}
+                          onChange={this.onPayFrequencyChange}>
+                          <option value="MONTHLY">Monthly</option>
+                          <option value="WEEKLY">Weekly</option>
+                          <option value="BIWEEKLY">Every other week</option>
+                          <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
+                        </select>
+                      </div>
+                    </div>
 
-            <div className="columns">
-              <div className="column is-one-third has-background-grey-lighter">
-                <form onSubmit={event => this.handleAddDebtAccount(this.state.newDebtAccount.debtAccountId, event)}>
-                  <p className="subtitle is-5">Add a new debt account using the form below:</p>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter name</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newDebtAccount.nickName}
-                        onChange={this.onNickNameChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter current balance</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newDebtAccount.balance}
-                        onChange={this.onBalanceChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter interest rate</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newDebtAccount.rate}
-                        onChange={this.onRateChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter minimum payment</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newDebtAccount.minPayment}
-                        onChange={this.onMinPaymentChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter last payment date</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newDebtAccount.lastPaidDate}
-                        onChange={this.onLastPaidDateChange}
-                        placeholder="YYYY-MM-DD"
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter pay frequency</p>
-                      <select
-                        className="select is-medium"
-                        value={this.state.newDebtAccount.payFrequency}
-                        onChange={this.onPayFrequencyChange}>
-                        <option value="MONTHLY">Monthly</option>
-                        <option value="WEEKLY">Weekly</option>
-                        <option value="BIWEEKLY">Every other week</option>
-                        <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="field has-addons">
-                    <div className="control">
-                      <button type="submit" className="button is-primary is-medium">
-                        Add debt account
+                    <div className="field has-addons">
+                      <div className="control">
+                        <button type="submit" className="button is-primary is-medium">
+                          Add debt account
                       </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              </div>
-              <div className="column is-two-thirds">
-                <div className="tile is-ancestor">
-                  <div className="tile is-12 is-parent  is-vertical">
-                    {
-                      this.state.debtAccounts.map((debtAccount, index) =>
-                        <DebtAccount
-                          isAdmin={true}
-                          handleUpdateDebtAccount={this.handleUpdateDebtAccount}
-                          handleDeleteDebtAccount={this.handleDeleteDebtAccount}
-                          nickName={debtAccount.nickName}
-                          balance={debtAccount.balance}
-                          rate={debtAccount.rate}
-                          minPayment={debtAccount.minPayment}
-                          lastPaidDate={debtAccount.lastPaidDate}
-                          payFrequency={debtAccount.payFrequency}
-                          debtAccountId={debtAccount.debtAccountId}
-                          key={debtAccount.debtAccountId}
-                        />)
-                    }
+                  </form>
+                </div>
+                <div className="column is-two-thirds">
+                  <div className="tile is-ancestor">
+                    <div className="tile is-12 is-parent  is-vertical">
+                      {
+                        this.state.debtAccounts.map((debtAccount, index) =>
+                          <DebtAccount
+                            isAdmin={true}
+                            handleUpdateDebtAccount={this.handleUpdateDebtAccount}
+                            handleDeleteDebtAccount={this.handleDeleteDebtAccount}
+                            nickName={debtAccount.nickName}
+                            balance={debtAccount.balance}
+                            rate={debtAccount.rate}
+                            minPayment={debtAccount.minPayment}
+                            lastPaidDate={debtAccount.lastPaidDate}
+                            payFrequency={debtAccount.payFrequency}
+                            debtAccountId={debtAccount.debtAccountId}
+                            key={debtAccount.debtAccountId}
+                          />)
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+          : <div><p>You must log in to view this content</p></div>
+        }
       </Fragment>
     )
   }

@@ -8,7 +8,7 @@ const config = require('../config.json');
 
 export default class WealthAreaChart extends Component {
 
-    token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+    token = (this.props.auth.user === null) ? "" : this.props.auth.user.signInUserSession.idToken.jwtToken;
 
     state = {
         series: { type: "area" },
@@ -26,34 +26,34 @@ export default class WealthAreaChart extends Component {
                 label: "highRateDebt",
                 data: [
                     { primary: new Date("2020-10-01T00:00:00.000Z"), secondary: -69186.27 },
-                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: 0 * -1 },
-                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: 0 * -1 },
+                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: -29445.20 },
+                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: -13744.60 },
                     { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: 0 * -1 }
                 ]
             },
             {
                 label: "lowRateDebt",
                 data: [
-                    { primary: new Date("2020-10-01T00:00:00.000Z"), secondary: -201028.64 },
-                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: -86803.74 },
-                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: -10 },
+                    { primary: new Date("2020-10-01T00:00:00.000Z"), secondary: -351028.64 },
+                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: -220803.74 },
+                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: -150123 },
                     { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: -0.01 }
                 ]
             },
             {
                 label: "taxableAssets",
                 data: [{ primary: new Date("2020-10-01T00:00:00.000Z"), secondary: 17273.18 },
-                { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: 585260.44 },
-                { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: 1708552.41 },
-                { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: 2563705.41 }
+                { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: 104558.44 },
+                { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: 338922.41 },
+                { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: 555477.41 }
                 ]
             }, {
                 label: "taxAdvantagedAssets",
                 data: [
-                    { primary: new Date("2020-10-01T00:00:00.000Z"), secondary: 201133.41 },
-                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: 631372.12 },
-                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: 1330221.21 },
-                    { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: 1826918.01 }
+                    { primary: new Date("2020-10-01T00:00:00.000Z"), secondary: 20020.41 },
+                    { primary: new Date("2028-10-01T00:00:00.000Z"), secondary: 55873.12 },
+                    { primary: new Date("2036-10-01T00:00:00.000Z"), secondary: 130221.21 },
+                    { primary: new Date("2040-10-01T00:00:00.000Z"), secondary: 186918.01 }
                 ]
             }, {
                 label: "totalPropertyValue",
@@ -179,8 +179,8 @@ export default class WealthAreaChart extends Component {
     }
 
     componentDidMount = () => {
-        this.setPlaceholderData();
-        this.fetchData();
+        if (this.props.auth.user === null) this.setPlaceholderData();
+        else this.fetchData();
     }
 
     render() {

@@ -8,9 +8,10 @@ const config = require('../../config.json');
 
 export default class AssetAccountAdmin extends Component {
 
-    token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+    token = "";
 
     state = {
+        isUserAuthenticated: false,
         newAssetAccount: {
             "assetAccountid": "",
             "balance": "",
@@ -122,8 +123,6 @@ export default class AssetAccountAdmin extends Component {
         }
     }
 
-
-
     fetchAssetAccounts = async () => {
         //this.addemall();
         try {
@@ -154,101 +153,109 @@ export default class AssetAccountAdmin extends Component {
 
 
     componentDidMount = () => {
-
-        this.fetchAssetAccounts();
+        if (this.props.auth.user !== null) {
+            this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+            this.setState(
+                { isUserAuthenticated: true }
+            );
+            this.fetchAssetAccounts();
+        }
     }
 
     render() {
         return (
             <Fragment>
-                <section className="section">
-                    <div className="container">
-                        <h1 className="title is-1">Manage Asset Accounts</h1>
+                {this.state.isUserAuthenticated ?
+                    <section className="section">
+                        <div className="container">
+                            <h1 className="title is-1">Manage Asset Accounts</h1>
 
-                        <div className="columns">
-                            <div className="column is-one-third">
-                                <form onSubmit={event => this.handleAddAssetAccount(this.state.newAssetAccount.assetAccountId, event)}>
-                                    <p className="subtitle is-5">Add a new asset account using the form below:</p>
-                                    <div className="field has-addons">
-                                        <div className="control">
-                                            <input
-                                                className="input is-medium"
-                                                type="text"
-                                                placeholder="Enter name"
-                                                value={this.state.newAssetAccount.nickName}
-                                                onChange={this.onNickNameChange}
-                                            />
+                            <div className="columns">
+                                <div className="column is-one-third">
+                                    <form onSubmit={event => this.handleAddAssetAccount(this.state.newAssetAccount.assetAccountId, event)}>
+                                        <p className="subtitle is-5">Add a new asset account using the form below:</p>
+                                        <div className="field has-addons">
+                                            <div className="control">
+                                                <input
+                                                    className="input is-medium"
+                                                    type="text"
+                                                    placeholder="Enter name"
+                                                    value={this.state.newAssetAccount.nickName}
+                                                    onChange={this.onNickNameChange}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="field has-addons">
-                                        <div className="control">
-                                            <input
-                                                className="input is-medium"
-                                                type="text"
-                                                placeholder="Enter current balance"
-                                                value={this.state.newAssetAccount.balance}
-                                                onChange={this.onBalanceChange}
-                                            />
+                                        <div className="field has-addons">
+                                            <div className="control">
+                                                <input
+                                                    className="input is-medium"
+                                                    type="text"
+                                                    placeholder="Enter current balance"
+                                                    value={this.state.newAssetAccount.balance}
+                                                    onChange={this.onBalanceChange}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="field has-addons">
-                                        <div className="control">
-                                            <input
-                                                className="input is-medium"
-                                                type="text"
-                                                placeholder="Enter estimated rate of return"
-                                                value={this.state.newAssetAccount.rate}
-                                                onChange={this.onRateChange}
-                                            />
+                                        <div className="field has-addons">
+                                            <div className="control">
+                                                <input
+                                                    className="input is-medium"
+                                                    type="text"
+                                                    placeholder="Enter estimated rate of return"
+                                                    value={this.state.newAssetAccount.rate}
+                                                    onChange={this.onRateChange}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="field has-addons">
-                                        <div className="control">
-                                            <select
-                                                className="select is-medium"
-                                                value={this.state.newAssetAccount.isTaxAdvantaged}
-                                                onChange={this.onIsTaxAdvantagedChange}>
-                                                <option value="NO">No</option>
-                                                <option value="YES">Yes</option>
-                                            </select>
+                                        <div className="field has-addons">
+                                            <div className="control">
+                                                <select
+                                                    className="select is-medium"
+                                                    value={this.state.newAssetAccount.isTaxAdvantaged}
+                                                    onChange={this.onIsTaxAdvantagedChange}>
+                                                    <option value="NO">No</option>
+                                                    <option value="YES">Yes</option>
+                                                </select>
 
 
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="field has-addons">
-                                        <div className="control">
-                                            <button type="submit" className="button is-primary is-medium">
-                                                Add asset  account
+                                        <div className="field has-addons">
+                                            <div className="control">
+                                                <button type="submit" className="button is-primary is-medium">
+                                                    Add asset  account
                       </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="column is-two-thirds">
-                                <div className="tile is-ancestor">
-                                    <div className="tile is-12 is-parent  is-vertical">
-                                        {
-                                            this.state.assetAccounts.map((assetAccount, index) =>
-                                                <AssetAccount
-                                                    isAdmin={true}
-                                                    handleUpdateAssetAccount={this.handleUpdateAssetAccount}
-                                                    handleDeleteAssetAccount={this.handleDeleteAssetAccount}
-                                                    nickName={assetAccount.nickName}
-                                                    balance={assetAccount.balance}
-                                                    rate={assetAccount.rate}
-                                                    isTaxAdvantaged={assetAccount.isTaxAdvantaged}
-                                                    assetAccountId={assetAccount.assetAccountId}
-                                                    key={assetAccount.assetAccountId}
-                                                />)
-                                        }
+                                    </form>
+                                </div>
+                                <div className="column is-two-thirds">
+                                    <div className="tile is-ancestor">
+                                        <div className="tile is-12 is-parent  is-vertical">
+                                            {
+                                                this.state.assetAccounts.map((assetAccount, index) =>
+                                                    <AssetAccount
+                                                        isAdmin={true}
+                                                        handleUpdateAssetAccount={this.handleUpdateAssetAccount}
+                                                        handleDeleteAssetAccount={this.handleDeleteAssetAccount}
+                                                        nickName={assetAccount.nickName}
+                                                        balance={assetAccount.balance}
+                                                        rate={assetAccount.rate}
+                                                        isTaxAdvantaged={assetAccount.isTaxAdvantaged}
+                                                        assetAccountId={assetAccount.assetAccountId}
+                                                        key={assetAccount.assetAccountId}
+                                                    />)
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                    : <div><p>You must log in to view this content</p></div>
+                }
             </Fragment>
         )
     }

@@ -7,9 +7,10 @@ const config = require('../../config.json');
 
 export default class BudgetAdmin extends Component {
 
-  token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+  token = "";
 
   state = {
+    isUserAuthenticated: false,
     newBudget: {
       "budgetId": "",
       "householdId": "",
@@ -30,7 +31,6 @@ export default class BudgetAdmin extends Component {
       }
     });
   }
-
   handleAddBudget = async (budgetId, event) => {
     event.preventDefault();
     try {
@@ -55,7 +55,6 @@ export default class BudgetAdmin extends Component {
       console.log(`Unable to add budget: ${err}`);
     }
   }
-
   handleUpdateBudget = async (budgetId, nickName, amount) => {
 
     try {
@@ -86,7 +85,6 @@ export default class BudgetAdmin extends Component {
       console.log(`Unable to update budget: ${err}`);
     }
   }
-
   handleDeleteBudget = async (budgetId, event) => {
     event.preventDefault();
 
@@ -108,9 +106,6 @@ export default class BudgetAdmin extends Component {
       }
     }
   }
-
-
-
   fetchBudgets = async () => {
     //this.addemall();
     try {
@@ -136,80 +131,87 @@ export default class BudgetAdmin extends Component {
       console.log(`An error has occurred: ${err}`);
     }
   }
-
   onNickNameChange = event => this.setState({ newBudget: { ...this.state.newBudget, "nickName": event.target.value } });
   onAmountChange = event => this.setState({ newBudget: { ...this.state.newBudget, "amount": event.target.value } });
 
   componentDidMount = () => {
-    this.fetchBudgets();
+    if (this.props.auth.user !== null) {
+      this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+      this.setState(
+        { isUserAuthenticated: true }
+      );
+      this.fetchBudgets();
+    }
   }
 
   render() {
     return (
       <Fragment>
+        {this.state.isUserAuthenticated ?
 
+          <section className="section">
+            <div className="container">
+              <h1 className="title is-1">Manage Budgets</h1>
 
-        <section className="section">
-          <div className="container">
-            <h1 className="title is-1">Manage Budgets</h1>
-
-            <div className="columns">
-              <div className="column is-one-third has-background-grey-lighter">
-                <form onSubmit={event => this.handleAddBudget(this.state.newBudget.budgetId, event)}>
-                  <p className="subtitle is-5">Add a new budget using the form below:</p>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter name</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newBudget.nickName}
-                        onChange={this.onNickNameChange}
-                      />
+              <div className="columns">
+                <div className="column is-one-third has-background-grey-lighter">
+                  <form onSubmit={event => this.handleAddBudget(this.state.newBudget.budgetId, event)}>
+                    <p className="subtitle is-5">Add a new budget using the form below:</p>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter name</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newBudget.nickName}
+                          onChange={this.onNickNameChange}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter amount</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newBudget.amount}
-                        onChange={this.onAmountChange}
-                      />
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter amount</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newBudget.amount}
+                          onChange={this.onAmountChange}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="field has-addons">
-                    <div className="control">
-                      <button type="submit" className="button is-primary is-medium">
-                        Add budget
+                    <div className="field has-addons">
+                      <div className="control">
+                        <button type="submit" className="button is-primary is-medium">
+                          Add budget
                       </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              </div>
-              <div className="column is-two-thirds">
-                <div className="tile is-ancestor">
-                  <div className="tile is-12 is-parent  is-vertical">
-                    {
-                      this.state.budgets.map((budget, index) =>
-                        <Budget
-                          isAdmin={true}
-                          handleUpdateBudget={this.handleUpdateBudget}
-                          handleDeleteBudget={this.handleDeleteBudget}
-                          nickName={budget.nickName}
-                          amount={budget.amount}
-                          budgetId={budget.budgetId}
-                          key={budget.budgetId}
-                        />)
-                    }
+                  </form>
+                </div>
+                <div className="column is-two-thirds">
+                  <div className="tile is-ancestor">
+                    <div className="tile is-12 is-parent  is-vertical">
+                      {
+                        this.state.budgets.map((budget, index) =>
+                          <Budget
+                            isAdmin={true}
+                            handleUpdateBudget={this.handleUpdateBudget}
+                            handleDeleteBudget={this.handleDeleteBudget}
+                            nickName={budget.nickName}
+                            amount={budget.amount}
+                            budgetId={budget.budgetId}
+                            key={budget.budgetId}
+                          />)
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+          : <div><p>You must log in to view this content</p></div>
+        }
       </Fragment>
     )
   }

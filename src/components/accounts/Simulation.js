@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import axios from "axios";
 import WealthAreaChart from '../WealthAreaChart';
 import LoaderSpinner from '../LoaderSpinner';
@@ -11,9 +11,10 @@ const multiSort = require('./multiSort');
 
 export default class Simulation extends Component {
 
-    token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+    token = "";
 
     state = {
+        isUserAuthenticated: false,
         simOutcomeText: "",
         debugMessages: [],
         payScheduleStateful: [],
@@ -639,24 +640,31 @@ export default class Simulation extends Component {
 
     /* #region rendering */
     componentDidMount = () => {
-        this.runSim();
+        if (this.props.auth.user !== null) {
+            this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+            this.setState(
+                { isUserAuthenticated: true }
+            );
+            this.runSim();
+        }
+
     }
 
     render() {
 
 
         return (
+            <Fragment>
+                { this.state.isUserAuthenticated ?
+                    <div>
+                        {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
+                        {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
+                        {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
+                    </div>
+                    : <div><p>You must log in to view this content</p></div>
+                }
 
-
-            <div>
-                {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
-                {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
-                {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
-            </div>
-
-
-
-
+            </Fragment>
         );
     }
     /* #endregion */

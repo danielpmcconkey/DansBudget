@@ -7,9 +7,10 @@ const config = require('../../config.json');
 
 export default class BillAdmin extends Component {
 
-  token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+  token = "";
 
   state = {
+    isUserAuthenticated: false,
     newBill: {
       "billId": "",
       "householdId": "",
@@ -126,7 +127,6 @@ export default class BillAdmin extends Component {
 
 
   fetchBills = async () => {
-    //this.addemall();
     try {
       console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlBill}/bills`
@@ -158,104 +158,111 @@ export default class BillAdmin extends Component {
 
 
   componentDidMount = () => {
-
-    this.fetchBills();
+    if (this.props.auth.user !== null) {
+      this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+      this.setState(
+        { isUserAuthenticated: true }
+      );
+      this.fetchBills();
+    }
   }
 
   render() {
     return (
       <Fragment>
+        {this.state.isUserAuthenticated ?
 
+          <section className="section">
+            <div className="container">
+              <h1 className="title is-1">Manage Bills</h1>
 
-        <section className="section">
-          <div className="container">
-            <h1 className="title is-1">Manage Bills</h1>
+              <div className="columns">
+                <div className="column is-one-third has-background-grey-lighter">
+                  <form onSubmit={event => this.handleAddBill(this.state.newBill.billId, event)}>
+                    <p className="subtitle is-5">Add a new bill using the form below:</p>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter name</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newBill.nickName}
+                          onChange={this.onNickNameChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter amount due</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newBill.amountDue}
+                          onChange={this.onAmountDueChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter last payment date</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newBill.lastPaidDate}
+                          onChange={this.onLastPaidDateChange}
+                          placeholder="YYYY-MM-DD"
+                        />
+                      </div>
+                    </div>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter pay frequency</p>
+                        <select
+                          className="select is-medium"
+                          value={this.state.newBill.payFrequency}
+                          onChange={this.onPayFrequencyChange}>
+                          <option value="MONTHLY">Monthly</option>
+                          <option value="WEEKLY">Weekly</option>
+                          <option value="BIWEEKLY">Every other week</option>
+                          <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
+                        </select>
+                      </div>
+                    </div>
 
-            <div className="columns">
-              <div className="column is-one-third has-background-grey-lighter">
-                <form onSubmit={event => this.handleAddBill(this.state.newBill.billId, event)}>
-                  <p className="subtitle is-5">Add a new bill using the form below:</p>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter name</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newBill.nickName}
-                        onChange={this.onNickNameChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter amount due</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newBill.amountDue}
-                        onChange={this.onAmountDueChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter last payment date</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newBill.lastPaidDate}
-                        onChange={this.onLastPaidDateChange}
-                        placeholder="YYYY-MM-DD"
-                      />
-                    </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter pay frequency</p>
-                      <select
-                        className="select is-medium"
-                        value={this.state.newBill.payFrequency}
-                        onChange={this.onPayFrequencyChange}>
-                        <option value="MONTHLY">Monthly</option>
-                        <option value="WEEKLY">Weekly</option>
-                        <option value="BIWEEKLY">Every other week</option>
-                        <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="field has-addons">
-                    <div className="control">
-                      <button type="submit" className="button is-primary is-medium">
-                        Add bill
+                    <div className="field has-addons">
+                      <div className="control">
+                        <button type="submit" className="button is-primary is-medium">
+                          Add bill
                       </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              </div>
-              <div className="column is-two-thirds">
-                <div className="tile is-ancestor">
-                  <div className="tile is-12 is-parent  is-vertical">
-                    {
-                      this.state.bills.map((bill, index) =>
-                        <Bill
-                          isAdmin={true}
-                          handleUpdateBill={this.handleUpdateBill}
-                          handleDeleteBill={this.handleDeleteBill}
-                          nickName={bill.nickName}
-                          amountDue={bill.amountDue}
-                          lastPaidDate={bill.lastPaidDate}
-                          payFrequency={bill.payFrequency}
-                          billId={bill.billId}
-                          key={bill.billId}
-                        />)
-                    }
+                  </form>
+                </div>
+                <div className="column is-two-thirds">
+                  <div className="tile is-ancestor">
+                    <div className="tile is-12 is-parent  is-vertical">
+                      {
+                        this.state.bills.map((bill, index) =>
+                          <Bill
+                            isAdmin={true}
+                            handleUpdateBill={this.handleUpdateBill}
+                            handleDeleteBill={this.handleDeleteBill}
+                            nickName={bill.nickName}
+                            amountDue={bill.amountDue}
+                            lastPaidDate={bill.lastPaidDate}
+                            payFrequency={bill.payFrequency}
+                            billId={bill.billId}
+                            key={bill.billId}
+                          />)
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+          : <div><p>You must log in to view this content</p></div>
+        }
       </Fragment>
     )
   }

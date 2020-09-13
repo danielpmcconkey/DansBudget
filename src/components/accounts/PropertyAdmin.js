@@ -7,9 +7,10 @@ const config = require('../../config.json');
 
 export default class PropertyAdmin extends Component {
 
-  token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+  token = "";
 
   state = {
+    isUserAuthenticated: false,
     newProperty: {
       "propertyid": "",
       "homeValue": "",
@@ -112,9 +113,6 @@ export default class PropertyAdmin extends Component {
       }
     }
   }
-
-
-
   fetchProperties = async () => {
     try {
       var url = `${config.api.invokeUrlProperty}/properties`
@@ -143,92 +141,96 @@ export default class PropertyAdmin extends Component {
   onNickNameChange = event => this.setState({ newProperty: { ...this.state.newProperty, "nickName": event.target.value } });
   onHomeValueChange = event => this.setState({ newProperty: { ...this.state.newProperty, "homeValue": event.target.value } });
   onHousingValueIncreaseRateChange = event => this.setState({ newProperty: { ...this.state.newProperty, "housingValueIncreaseRate": event.target.value } });
-
-
-
   componentDidMount = () => {
-
-    this.fetchProperties();
+    if (this.props.auth.user !== null) {
+      this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+      this.setState(
+        { isUserAuthenticated: true }
+      );
+      this.fetchProperties();
+    }
   }
 
   render() {
     return (
       <Fragment>
+        {this.state.isUserAuthenticated ?
 
+          <section className="section">
+            <div className="container">
+              <h1 className="title is-1">Manage Properties</h1>
 
-        <section className="section">
-          <div className="container">
-            <h1 className="title is-1">Manage Properties</h1>
-
-            <div className="columns">
-              <div className="column is-one-third has-background-grey-lighter">
-                <form onSubmit={event => this.handleAddProperty(this.state.newProperty.propertyId, event)}>
-                  <p className="subtitle is-5">Add a new property using the form below:</p>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter name</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newProperty.nickName}
-                        onChange={this.onNickNameChange}
-                      />
+              <div className="columns">
+                <div className="column is-one-third has-background-grey-lighter">
+                  <form onSubmit={event => this.handleAddProperty(this.state.newProperty.propertyId, event)}>
+                    <p className="subtitle is-5">Add a new property using the form below:</p>
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter name</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newProperty.nickName}
+                          onChange={this.onNickNameChange}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter current home value</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newProperty.homeValue}
-                        onChange={this.onHomeValueChange}
-                      />
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter current home value</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newProperty.homeValue}
+                          onChange={this.onHomeValueChange}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="field has-addons">
-                    <div className="control">
-                      <p className="fieldLabel">Enter housing value increase rate</p>
-                      <input
-                        className="input is-medium"
-                        type="text"
-                        value={this.state.newProperty.housingValueIncreaseRate}
-                        onChange={this.onHousingValueIncreaseRateChange}
-                      />
+                    <div className="field has-addons">
+                      <div className="control">
+                        <p className="fieldLabel">Enter housing value increase rate</p>
+                        <input
+                          className="input is-medium"
+                          type="text"
+                          value={this.state.newProperty.housingValueIncreaseRate}
+                          onChange={this.onHousingValueIncreaseRateChange}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="field has-addons">
-                    <div className="control">
-                      <button type="submit" className="button is-primary is-medium">
-                        Add property
+                    <div className="field has-addons">
+                      <div className="control">
+                        <button type="submit" className="button is-primary is-medium">
+                          Add property
                       </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              </div>
-              <div className="column is-two-thirds">
-                <div className="tile is-ancestor">
-                  <div className="tile is-12 is-parent  is-vertical">
-                    {
-                      this.state.properties.map((property, index) =>
-                        <Property
-                          isAdmin={true}
-                          handleUpdateProperty={this.handleUpdateProperty}
-                          handleDeleteProperty={this.handleDeleteProperty}
-                          nickName={property.nickName}
-                          homeValue={property.homeValue}
-                          housingValueIncreaseRate={property.housingValueIncreaseRate}
-                          propertyId={property.propertyId}
-                          key={property.propertyId}
-                        />)
-                    }
+                  </form>
+                </div>
+                <div className="column is-two-thirds">
+                  <div className="tile is-ancestor">
+                    <div className="tile is-12 is-parent  is-vertical">
+                      {
+                        this.state.properties.map((property, index) =>
+                          <Property
+                            isAdmin={true}
+                            handleUpdateProperty={this.handleUpdateProperty}
+                            handleDeleteProperty={this.handleDeleteProperty}
+                            nickName={property.nickName}
+                            homeValue={property.homeValue}
+                            housingValueIncreaseRate={property.housingValueIncreaseRate}
+                            propertyId={property.propertyId}
+                            key={property.propertyId}
+                          />)
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+          : <div><p>You must log in to view this content</p></div>
+        }
       </Fragment>
     )
   }

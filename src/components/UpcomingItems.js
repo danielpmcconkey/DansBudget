@@ -7,9 +7,12 @@ const moment = require('moment');
 
 export default class UpcomingItems extends Component {
 
-    token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+    token = "";
+
+
     state = {
         allRowsStateful: [],
+        isUserAuthenticated: false
     }
     allRows = [];
 
@@ -118,34 +121,46 @@ export default class UpcomingItems extends Component {
 
     }
     componentDidMount = () => {
-        this.fetchData();
+        if (this.props.auth.user !== null) {
+            this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
+            this.setState(
+                { isUserAuthenticated: true }
+            );
+            this.fetchData();
+        }
     }
 
     render() {
         return (
             <Fragment>
                 <p className="has-text-centered">Recent and Upcoming Activities</p>
-                <div className="table-container">
-                    <table className="table">
-                        <thead className="thead">
-                            <tr>
-                                <th>Date</th>
-                                <th>Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody>{this.state.allRowsStateful.map(function (item, key) {
-
-                            return (
-                                <tr key={key} className={item.cssClassName}>
-                                    <td>{item.activityDate.format("ddd MMM D, YYYY")}</td>
-                                    <td>{item.humanReadableMessage}</td>
+                {this.state.isUserAuthenticated ?
+                    <div className="table-container">
+                        <table className="table">
+                            <thead className="thead">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Activity</th>
                                 </tr>
-                            )
+                            </thead>
+                            <tbody>{this.state.allRowsStateful.map(function (item, key) {
 
-                        })}</tbody>
-                    </table>
+                                return (
+                                    <tr key={key} className={item.cssClassName}>
+                                        <td>{item.activityDate.format("ddd MMM D, YYYY")}</td>
+                                        <td>{item.humanReadableMessage}</td>
+                                    </tr>
+                                )
 
-                </div>
+                            })}</tbody>
+                        </table>
+
+                    </div>
+                    : <div><p>You must log in to view this content</p></div>
+                }
+
+
+                {/*  */}
             </Fragment>
         )
     }
