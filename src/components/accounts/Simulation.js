@@ -6,7 +6,8 @@ import PayScheduleTable from '../PayScheduleTable';
 import WorthScheduleTable from '../WorthScheduleTable';
 const config = require('../../config.json');
 const moment = require('moment');
-const multiSort = require('./multiSort');
+const multiSort = require('../sharedFunctions/multiSort');
+const getMostRecentSimFromDBReturn = require('../sharedFunctions/getMostRecentSimFromDBReturn');
 
 
 export default class Simulation extends Component {
@@ -84,8 +85,6 @@ export default class Simulation extends Component {
                 firstDayOfSim = false;
             }
 
-            // save sim data
-            await this.saveSimData();
             this.simOutcomeText = "Simulation successful"
 
 
@@ -100,91 +99,96 @@ export default class Simulation extends Component {
             this.setState({ isLoading: false });
         }
     }
-    deleteMe = async () => {
-        var url = `${config.api.invokeUrlSimulation}/simulations`
+    // deleteMe = async () => {
+    //     var url = `${config.api.invokeUrlSimulation}/simulations`
 
-        const res = await axios.get(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                'household-id': 'authVal',
-                'Authorization': `Bearer ${this.token}`
-            },
-            data: null
-        });
-        if (res.data !== undefined) {
-            var dedupedPaySchedule = [];
-            var dedupedWorthSchedule = [];
-            var simIterator = 0;
-            for (simIterator = 0; simIterator < res.data.length; simIterator++) {
-                //console.log(`in sim iterat ${res.data.length}`);
-                var thisSim = res.data[simIterator];
-                var thisPaySchedule = thisSim.paySchedule;
-                var thisWorthSchedule = thisSim.worthSchedule;
-                //console.log(`thisPaySchedule ${JSON.stringify(thisPaySchedule)}`);
-                var i = 0;
-                var row = [];
+    //     const res = await axios.get(url, {
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'household-id': 'authVal',
+    //             'Authorization': `Bearer ${this.token}`
+    //         },
+    //         data: null
+    //     });
+    //     if (res.data !== undefined) {
+    //         var dedupedPaySchedule = [];
+    //         var dedupedWorthSchedule = [];
+    //         var simIterator = 0;
+    //         for (simIterator = 0; simIterator < res.data.length; simIterator++) {
+    //             //console.log(`in sim iterat ${res.data.length}`);
+    //             var thisSim = res.data[simIterator];
+    //             var thisPaySchedule = thisSim.paySchedule;
+    //             var thisWorthSchedule = thisSim.worthSchedule;
+    //             //console.log(`thisPaySchedule ${JSON.stringify(thisPaySchedule)}`);
+    //             var i = 0;
+    //             var row = [];
 
-                // iterate through pay schedule and add unique items to dedepedPaySchedule
-                for (i = 0; i < thisPaySchedule.length; i++) {
-                    //console.log(`in thisPaySchedule iterat ${thisPaySchedule.length}`);
-                    row = thisPaySchedule[i];
-                    if (this.isPayScheduleRowUnique(row, dedupedPaySchedule)) {
-                        dedupedPaySchedule.push(row);
-                    }
-                }
-                // console.log(`dedupedPaySchedule ${dedupedPaySchedule.length}`);
-                // iterate through worth schedule and add unique items to dedepedWorthSchedule
-                for (i = 0; i < thisWorthSchedule.length; i++) {
-                    row = thisWorthSchedule[i];
-                    if (this.isWorthScheduleRowUnique(row, dedupedWorthSchedule)) {
-                        dedupedWorthSchedule.push(row);
-                    }
-                }
-                //console.log(`dedupedWorthSchedule ${dedupedWorthSchedule.length}`);
-            }
-            this.setState({ payScheduleStateful: dedupedPaySchedule });
-            this.setState({ worthScheduleStateful: dedupedWorthSchedule });
-            console.log("Fin");
-            this.setState({ isLoading: false });
+    //             // iterate through pay schedule and add unique items to dedepedPaySchedule
+    //             for (i = 0; i < thisPaySchedule.length; i++) {
+    //                 //console.log(`in thisPaySchedule iterat ${thisPaySchedule.length}`);
+    //                 row = thisPaySchedule[i];
+    //                 if (this.isPayScheduleRowUnique(row, dedupedPaySchedule) &&
+    //                     moment(row.simulationRunDate).isBefore(moment())
+    //                 ) {
+    //                     dedupedPaySchedule.push(row);
+    //                 }
+    //             }
+    //             // console.log(`dedupedPaySchedule ${dedupedPaySchedule.length}`);
+    //             // iterate through worth schedule and add unique items to dedepedWorthSchedule
+    //             for (i = 0; i < thisWorthSchedule.length; i++) {
+    //                 row = thisWorthSchedule[i];
+    //                 if (this.isWorthScheduleRowUnique(row, dedupedWorthSchedule) &&
+    //                     moment(row.simulationRunDate).isBefore(moment())
+    //                 ) {
+    //                     dedupedWorthSchedule.push(row);
+    //                 }
+    //             }
+    //             //console.log(`dedupedWorthSchedule ${dedupedWorthSchedule.length}`);
+    //         }
+    //         this.setState({ payScheduleStateful: dedupedPaySchedule });
+    //         this.setState({ worthScheduleStateful: dedupedWorthSchedule });
+    //         console.log("Fin");
+    //         this.setState({ isLoading: false });
 
-        } else {
-            throw new Error("Data from API is undefined.");
-        } // end if data != undefined
-    }
-    isPayScheduleRowUnique = (inRow, listToCheckAgainst) => {
+    //     } else {
+    //         throw new Error("Data from API is undefined.");
+    //     } // end if data != undefined
+    // }
+    // isPayScheduleRowUnique = (inRow, listToCheckAgainst) => {
 
-        for (var i = 0; i < listToCheckAgainst.length; i++) {
-            var thisRow = listToCheckAgainst[i];
-            if (inRow.simulationRunDate === thisRow.simulationRunDate &&
-                inRow.accountName === thisRow.accountName &&
-                inRow.debits === thisRow.debits &&
-                inRow.credits === thisRow.credits &&
-                inRow.checkingBal === thisRow.checkingBal &&
-                inRow.savingsBal === thisRow.savingsBal &&
-                inRow.comment === thisRow.comment
-            ) {
-                return false;
-            }
-        }
-        return true;
-    }
-    isWorthScheduleRowUnique = (inRow, listToCheckAgainst) => {
+    //     for (var i = 0; i < listToCheckAgainst.length; i++) {
+    //         var thisRow = listToCheckAgainst[i];
+    //         if (inRow.simulationRunDate === thisRow.simulationRunDate &&
+    //             inRow.accountName === thisRow.accountName &&
+    //             inRow.debits === thisRow.debits &&
+    //             inRow.credits === thisRow.credits &&
+    //             inRow.checkingBal === thisRow.checkingBal &&
+    //             inRow.savingsBal === thisRow.savingsBal &&
+    //             inRow.comment === thisRow.comment
+    //         ) {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+    // isWorthScheduleRowUnique = (inRow, listToCheckAgainst) => {
 
-        for (var i = 0; i < listToCheckAgainst.length; i++) {
-            var thisRow = listToCheckAgainst[i];
-            if (inRow.simulationRunDate === thisRow.simulationRunDate &&
-                inRow.highRateDebt === thisRow.highRateDebt &&
-                inRow.lowRateDebt === thisRow.lowRateDebt &&
-                inRow.taxableAssets === thisRow.taxableAssets &&
-                inRow.taxAdvantagedAssets === thisRow.taxAdvantagedAssets &&
-                inRow.totalPropertyValue === thisRow.totalPropertyValue &&
-                inRow.netWorth === thisRow.netWorth
-            ) {
-                return false;
-            }
-        }
-        return true;
-    }
+    //     for (var i = 0; i < listToCheckAgainst.length; i++) {
+    //         var thisRow = listToCheckAgainst[i];
+    //         if (inRow.simulationRunDate === thisRow.simulationRunDate &&
+    //             inRow.highRateDebt === thisRow.highRateDebt &&
+    //             inRow.lowRateDebt === thisRow.lowRateDebt &&
+    //             inRow.taxableAssets === thisRow.taxableAssets &&
+    //             inRow.taxAdvantagedAssets === thisRow.taxAdvantagedAssets &&
+    //             inRow.totalPropertyValue === thisRow.totalPropertyValue &&
+    //             inRow.netWorth === thisRow.netWorth
+    //         ) {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+
     /* #region simulation functions */
     accrueInterest = () => {
         for (var i = 0; i < this.debtAccounts.length; i++) {
@@ -730,10 +734,13 @@ export default class Simulation extends Component {
             this.setState(
                 { isUserAuthenticated: true }
             );
-            //this.runSim();
-            this.deleteMe();
+            this.runSim();
         }
 
+    }
+    handleSaveSimData = event => {
+        event.preventDefault();
+        this.saveSimData();
     }
 
     render() {
@@ -743,6 +750,17 @@ export default class Simulation extends Component {
             <Fragment>
                 { this.state.isUserAuthenticated ?
                     <div>
+                        {this.state.isLoading ?
+                            <p>Simulation running. Please wait.</p>
+                            :
+                            <div className="field has-addons">
+                                <div className="control">
+                                    <button type="submit" onClick={this.handleSaveSimData} className="button is-primary is-medium">
+                                        Save simulation results
+                                </button>
+                                </div>
+                            </div>
+                        }
                         {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
                         {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
                         {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}

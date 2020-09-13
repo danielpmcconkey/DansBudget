@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import Property from './Property';
 import axios from "axios";
-var multiSort = require('./multiSort');
+const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
 

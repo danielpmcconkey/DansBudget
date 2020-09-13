@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import DebtAccount from './DebtAccount';
 import axios from "axios";
-var multiSort = require('./multiSort');
+const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
 
