@@ -114,7 +114,10 @@ export default class UpcomingItems extends Component {
                 } // end iterate through rows
 
                 this.setState({ allRowsStateful: this.allRows });
+            } else {
+                throw new Error("Data from API is undefined.");
             } // end if data != undefined
+
         } catch (err) {
             console.log(`An error has occurred: ${err}`);
         }
@@ -158,9 +161,6 @@ export default class UpcomingItems extends Component {
                     </div>
                     : <div><p>You must log in to view this content</p></div>
                 }
-
-
-                {/*  */}
             </Fragment>
         )
     }
