@@ -1,8 +1,5 @@
-import React, { Component, Fragment } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import NumberFormat from 'react-number-format';
+import React, { Component } from 'react';
 import axios from "axios";
-import Cookies from 'js-cookie';
 import WealthAreaChart from '../WealthAreaChart';
 import LoaderSpinner from '../LoaderSpinner';
 import PayScheduleTable from '../PayScheduleTable';
@@ -61,7 +58,7 @@ export default class Simulation extends Component {
 
             while (this.simulationRunDate <= this.endDate) {
                 // run at the beginning and every month thereafter
-                if (firstDayOfSim || this.simulationRunDate.date() == simMonthlyCycleDay) {
+                if (firstDayOfSim || this.simulationRunDate.date() === simMonthlyCycleDay) {
                     this.transferToDailySpendAccount();
                 }
 
@@ -71,12 +68,12 @@ export default class Simulation extends Component {
                 this.checkForBonus();
                 this.payBills();
 
-                if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() == 1)  // last day of the month
+                if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() === 1)  // last day of the month
                 {
                     this.tryToPayExtra();
                     this.tryToInvestExtra();
                 }
-                if (this.simulationRunDate.date() == 1)  // first day of the month
+                if (this.simulationRunDate.date() === 1)  // first day of the month
                 {
                     this.calculateNetWorth();
                 }
@@ -111,11 +108,11 @@ export default class Simulation extends Component {
             var afterVal = account.balance;
             this.totalDebtInterestAccrual += (afterVal - beforeVal);
         }
-        for (var i = 0; i < this.assetAccounts.length; i++) {
-            var account = this.assetAccounts[i];
+        for (i = 0; i < this.assetAccounts.length; i++) {
+            account = this.assetAccounts[i];
             this.compoundDaily(account);
         }
-        for (var i = 0; i < this.properties.length; i++) {
+        for (i = 0; i < this.properties.length; i++) {
             var property = this.properties[i];
             this.compoundDailyProperty(property);
         }
@@ -123,17 +120,17 @@ export default class Simulation extends Component {
     bonusDay = (e) => {
         // first find tax and withholdings percent
         var grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
-        if (e.payfrequency == "BIWEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 26;
-        else if (e.payfrequency == "FIRSTANDFIFTHTEENTH") grossPayPerPeriod = e.currentSalaryGrossAnnual / 24;
-        else if (e.payfrequency == "MONTHLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
-        else if (e.payfrequency == "WEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 52;
+        if (e.payfrequency === "BIWEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 26;
+        else if (e.payfrequency === "FIRSTANDFIFTHTEENTH") grossPayPerPeriod = e.currentSalaryGrossAnnual / 24;
+        else if (e.payfrequency === "MONTHLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
+        else if (e.payfrequency === "WEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 52;
 
         var takeHomePercent = e.currentSalaryNetPerPaycheck / grossPayPerPeriod;
         var bonusGross = e.currentSalaryGrossAnnual * e.bonusTargetRate;
         var bonusNet = bonusGross * takeHomePercent;
 
         // done to accommodate weird offcycle covid bonus
-        if (this.simulationRunDate.year() == 2021) {
+        if (this.simulationRunDate.year() === 2021) {
             bonusGross *= .5;
             bonusNet *= .5;
         }
@@ -167,17 +164,18 @@ export default class Simulation extends Component {
                     }
                     break;
                 case "FIRSTANDFIFTHTEENTH":
-                    if (this.simulationRunDate.date() == 1 || this.simulationRunDate.date() == 15) {
-                        this.payDay(e);
-                    }
-                    break;
-                case "MONTHLY":
-                    if (this.simulationRunDate.date() == 1) {
+                    if (this.simulationRunDate.date() === 1 || this.simulationRunDate.date() === 15) {
                         this.payDay(e);
                     }
                     break;
                 case "WEEKLY":
-                    if (this.simulationRunDate.day == 5) {    // assumes friday is payday
+                    if (this.simulationRunDate.day === 5) {    // assumes friday is payday
+                        this.payDay(e);
+                    }
+                    break;
+                default:
+                case "MONTHLY":
+                    if (this.simulationRunDate.date() === 1) {
                         this.payDay(e);
                     }
                     break;
@@ -232,8 +230,8 @@ export default class Simulation extends Component {
         if (fromAccount.isOpen && toAccount.isOpen) {
             this.debitAnAccount(fromAccount, amount);
             toAccount.lastPaidDate = moment(this.simulationRunDate);
-            if (amount != toAccount.amountDue) {
-                throw "Paid the wrong amount on a bill";
+            if (amount !== toAccount.amountDue) {
+                throw new Error("Paid the wrong amount on a bill");
             }
             this.logPaySchedule(this.simulationRunDate, toAccount.nickName, amount, 0, comment);
         }
@@ -246,8 +244,8 @@ export default class Simulation extends Component {
             fromAccount.balance += change;
 
             var amountPaid = amount - change;
-            if (toAccount.isOpen == false || toAccount.balance <= 0) {
-                if (comment == "") comment = `Payoff of ${toAccount.nickName}`;
+            if (toAccount.isOpen === false || toAccount.balance <= 0) {
+                if (comment === "") comment = `Payoff of ${toAccount.nickName}`;
                 else comment += ` | Payoff of ${toAccount.nickName}`;
                 this.debtMonthlySpend -= toAccount.minPayment;
             }
@@ -255,12 +253,17 @@ export default class Simulation extends Component {
         }
     }
     payBills = () => {
+        // set up iterator variables
+        var i = 0;
+        var a = {};
+        var isDue = false;
+
         // check bills
-        for (var i = 0; i < this.bills.length; i++) {
-            var a = this.bills[i];
+        for (i = 0; i < this.bills.length; i++) {
+            a = this.bills[i];
             if (a.isOpen) {
                 // is it due today?
-                var isDue = false;
+                isDue = false;
                 switch (a.payFrequency) {
                     case "BIWEEKLY":
                         if (this.addDaysWithoutSetting(a.lastPaidDate, 14).isSame(this.simulationRunDate)) {
@@ -268,15 +271,16 @@ export default class Simulation extends Component {
                         }
                         break;
                     case "FIRSTANDFIFTHTEENTH":
-                        if (a.lastPaidDate.date() == 1 || a.lastPaidDate.date() == 15)
-                            isDue = true;
-                        break;
-                    case "MONTHLY":
-                        if (this.addMonthsWithoutSetting(a.lastPaidDate, 1).isSame(this.simulationRunDate))
+                        if (a.lastPaidDate.date() === 1 || a.lastPaidDate.date() === 15)
                             isDue = true;
                         break;
                     case "WEEKLY":
                         if (this.addDaysWithoutSetting(a.lastPaidDate, 7).isSame(this.simulationRunDate))
+                            isDue = true;
+                        break;
+                    default:
+                    case "MONTHLY":
+                        if (this.addMonthsWithoutSetting(a.lastPaidDate, 1).isSame(this.simulationRunDate))
                             isDue = true;
                         break;
                 }
@@ -287,11 +291,12 @@ export default class Simulation extends Component {
 
             }
         }
-        for (var i = 0; i < this.debtAccounts.length; i++) {
-            var a = this.debtAccounts[i];
+        // check debt accounts
+        for (i = 0; i < this.debtAccounts.length; i++) {
+            a = this.debtAccounts[i];
             if (a.isOpen) {
                 // is it due today?
-                var isDue = false;
+                isDue = false;
                 switch (a.payFrequency) {
                     case "BIWEEKLY":
                         if (this.addDaysWithoutSetting(a.lastPaidDate, 14).isSame(this.simulationRunDate)) {
@@ -299,9 +304,10 @@ export default class Simulation extends Component {
                         }
                         break;
                     case "FIRSTANDFIFTHTEENTH":
-                        if (a.lastPaidDate.date() == 1 || a.lastPaidDate.date() == 15)
+                        if (a.lastPaidDate.date() === 1 || a.lastPaidDate.date() === 15)
                             isDue = true;
                         break;
+                    default:
                     case "MONTHLY":
                         if (this.addMonthsWithoutSetting(a.lastPaidDate, 1).isSame(this.simulationRunDate))
                             isDue = true;
@@ -326,10 +332,10 @@ export default class Simulation extends Component {
         this.logPaySchedule(this.simulationRunDate, "Pay day", 0, e.currentSalaryNetPerPaycheck, comment);
 
         var grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
-        if (e.payfrequency == "BIWEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 26;
-        else if (e.payfrequency == "FIRSTANDFIFTHTEENTH") grossPayThisPeriod = e.currentSalaryGrossAnnual / 24;
-        else if (e.payfrequency == "MONTHLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
-        else if (e.payfrequency == "WEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 52;
+        if (e.payfrequency === "BIWEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 26;
+        else if (e.payfrequency === "FIRSTANDFIFTHTEENTH") grossPayThisPeriod = e.currentSalaryGrossAnnual / 24;
+        else if (e.payfrequency === "MONTHLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
+        else if (e.payfrequency === "WEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 52;
         this.contributeTo401k(e.employerRetirementAccount, (grossPayThisPeriod * e.retirementContributionRate), "401(k) contribution from employee");
         this.contributeTo401k(e.employerRetirementAccount, (grossPayThisPeriod * e.retirementMatchRate), "401(k) contribution from employer");
         e.mostRecentPayday = moment(this.simulationRunDate);
@@ -369,13 +375,13 @@ export default class Simulation extends Component {
         for (i = 0; i < this.assetAccounts.length; i++) {
             var a = this.assetAccounts[i];
 
-            if (a.assetAccountId == this.primaryCheckingAccountId) this.primaryCheckingAccount = a;
-            if (a.assetAccountId == this.dailySpendAccountId) this.dailySpendAccount = a;
-            if (a.assetAccountId == this.newInvestmentsAccountId) this.newInvestmentsAccount = a;
-            if (a.assetAccountId == this.primarySavingAccountId) this.primarySavingAccount = a;
+            if (a.assetAccountId === this.primaryCheckingAccountId) this.primaryCheckingAccount = a;
+            if (a.assetAccountId === this.dailySpendAccountId) this.dailySpendAccount = a;
+            if (a.assetAccountId === this.newInvestmentsAccountId) this.newInvestmentsAccount = a;
+            if (a.assetAccountId === this.primarySavingAccountId) this.primarySavingAccount = a;
 
             for (var j = 0; j < this.employers.length; j++) {
-                if (a.assetAccountId == this.employers[j].employerRetirementAccount) {
+                if (a.assetAccountId === this.employers[j].employerRetirementAccount) {
                     this.employers[j].employerRetirementAccount = a;
                 }
             }
@@ -383,23 +389,24 @@ export default class Simulation extends Component {
     }
     calculateBurnRates = () => {
         var i = 0;
+        var a = {};
         // first budgets
         for (i = 0; i < this.budgets.length; i++) {
-            var a = this.budgets[i];
+            a = this.budgets[i];
             this.budgetsMonthlySpend += a.amount;
         }
         this.budgetsDailySpend = this.roundToCurrency(this.budgetsMonthlySpend * 12 / 365.25);
 
         // then bills
         for (i = 0; i < this.bills.length; i++) {
-            var a = this.bills[i];
+            a = this.bills[i];
             this.billsMonthlySpend += a.amountDue;
         }
         this.billssDailySpend = this.roundToCurrency(this.billsMonthlySpend * 12 / 365.25);
 
         // then debts
         for (i = 0; i < this.debtAccounts.length; i++) {
-            var a = this.debtAccounts[i];
+            a = this.debtAccounts[i];
             this.debtMonthlySpend += a.minPayment;
         }
     }
@@ -439,16 +446,17 @@ export default class Simulation extends Component {
     }
     setAllDatesToMidnight = () => {
         var i = 0;
+        var a = {};
         for (i = 0; i < this.debtAccounts.length; i++) {
-            var a = this.debtAccounts[i];
+            a = this.debtAccounts[i];
             a.lastPaidDate = this.resetDateToMidnight(a.lastPaidDate);
         }
         for (i = 0; i < this.bills.length; i++) {
-            var a = this.bills[i];
+            a = this.bills[i];
             a.lastPaidDate = this.resetDateToMidnight(a.lastPaidDate);
         }
         for (i = 0; i < this.employers.length; i++) {
-            var a = this.employers[i];
+            a = this.employers[i];
             a.mostRecentBonusDate = this.resetDateToMidnight(a.mostRecentBonusDate);
             a.mostRecentPayday = this.resetDateToMidnight(a.mostRecentPayday);
         }
@@ -490,27 +498,29 @@ export default class Simulation extends Component {
         var totalPropertyValue = 0;
         var totalNetWorth = 0;
 
-        for (var i = 0; i < this.debtAccounts.length; i++) {
-            var a = this.debtAccounts[i];
+        var i = 0;
+        var a = {};
+
+        for (i = 0; i < this.debtAccounts.length; i++) {
+            a = this.debtAccounts[i];
             if (a.rate <= 0.05) lowRateDebt += a.balance;
             else highRateDebt += a.balance;
         }
-        for (var i = 0; i < this.assetAccounts.length; i++) {
-            var a = this.assetAccounts[i];
+        for (i = 0; i < this.assetAccounts.length; i++) {
+            a = this.assetAccounts[i];
             if (a.isTaxAdvantaged === "NO") {
                 if (a.balance > 0) taxableAssets2 += a.balance;
-                else if (a.balance < 0 || a.balance == null || a.balance == undefined) throw 'baloney2';
+                else if (a.balance < 0 || a.balance === null || a.balance === undefined)
+                    throw new Error(`null or negative balance in asset account: ${a.nickName}`);
             }
             else taxAdvantagedAssets += a.balance;
 
         }
-        for (var i = 0; i < this.properties.length; i++) {
+        for (i = 0; i < this.properties.length; i++) {
             totalPropertyValue += this.properties[i].homeValue;
         }
-        //taxableAssets = 17;
+
         totalNetWorth = taxableAssets2 + taxAdvantagedAssets + totalPropertyValue - highRateDebt - lowRateDebt;
-        //totalNetWorth = 10.7;
-        //if(totalNetWorth == null || totalNetWorth == undefined) throw `burp + ${JSON.stringify(this.assetAccounts)}`;
         var worthObject = {
             key: this.worthSchedule.length,
             simulationRunDate: this.simulationRunDate.format("YYYY-MM-DD"),
@@ -540,7 +550,7 @@ export default class Simulation extends Component {
     debitAnAccount = (account, amount) => {
         account.balance -= amount;
         if (account.balance < 0) {
-            throw `Overdrawn on account ${account.nickName}`;
+            throw new Error(`Overdrawn on account ${account.nickName}`);
         }
     }
     logPaySchedule = (inDate, accountName, debits, credits, comment) => {

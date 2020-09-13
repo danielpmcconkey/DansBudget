@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from 'react';
 import axios from "axios";
-import Cookies from 'js-cookie';
 import ResizableBox from './ResizableBox';
 import { Chart } from "react-charts";
 const config = require('../config.json');
@@ -89,15 +88,21 @@ export default class WealthAreaChart extends Component {
                 data: null
             });
 
-            if (res.data != undefined) {
+            // set up iterator vars
+            var i = 0;
+            var row = {};
+            var runDate = new Date();
+            var value = 0;
+
+            if (res.data !== undefined) {
                 const worthSchedule = this.getMostRecentDataFromDBReturn(res.data).worthSchedule;
                 var dbData = [];
                 // high rate debt
                 var highRateDebtData = [];
-                for (var i = 0; i < worthSchedule.length; i++) {
-                    var row = worthSchedule[i];
-                    var runDate = row.simulationRunDate;
-                    var value = (row.highRateDebt === 0) ? -0.001 : row.highRateDebt;
+                for (i = 0; i < worthSchedule.length; i++) {
+                    row = worthSchedule[i];
+                    runDate = row.simulationRunDate;
+                    value = (row.highRateDebt === 0) ? -0.001 : row.highRateDebt;
                     highRateDebtData.push({ primary: new Date(runDate), secondary: value * -1 });
                 }
                 var highRateDebt = {
@@ -108,10 +113,10 @@ export default class WealthAreaChart extends Component {
 
                 // low rate debt
                 var lowRateDebtData = [];
-                for (var i = 0; i < worthSchedule.length; i++) {
-                    var row = worthSchedule[i];
-                    var runDate = row.simulationRunDate;
-                    var value = (row.lowRateDebt === 0) ? -0.001 : row.lowRateDebt;
+                for (i = 0; i < worthSchedule.length; i++) {
+                    row = worthSchedule[i];
+                    runDate = row.simulationRunDate;
+                    value = (row.lowRateDebt === 0) ? -0.001 : row.lowRateDebt;
                     lowRateDebtData.push({ primary: new Date(runDate), secondary: value * -1 });
                 }
                 var lowRateDebt = {
@@ -122,10 +127,10 @@ export default class WealthAreaChart extends Component {
 
                 // taxable assets
                 var taxableAssetsData = [];
-                for (var i = 0; i < worthSchedule.length; i++) {
-                    var row = worthSchedule[i];
-                    var runDate = row.simulationRunDate;
-                    var value = row.taxableAssets;
+                for (i = 0; i < worthSchedule.length; i++) {
+                    row = worthSchedule[i];
+                    runDate = row.simulationRunDate;
+                    value = row.taxableAssets;
                     taxableAssetsData.push({ primary: new Date(runDate), secondary: value });
                 }
                 var taxableAssets = {
@@ -136,10 +141,10 @@ export default class WealthAreaChart extends Component {
 
                 // tax advantaged assets
                 var taxAdvantagedAssetsData = [];
-                for (var i = 0; i < worthSchedule.length; i++) {
-                    var row = worthSchedule[i];
-                    var runDate = row.simulationRunDate;
-                    var value = row.taxAdvantagedAssets;
+                for (i = 0; i < worthSchedule.length; i++) {
+                    row = worthSchedule[i];
+                    runDate = row.simulationRunDate;
+                    value = row.taxAdvantagedAssets;
                     taxAdvantagedAssetsData.push({ primary: new Date(runDate), secondary: value });
                 }
                 var taxAdvantagedAssets = {
@@ -150,10 +155,10 @@ export default class WealthAreaChart extends Component {
 
                 // total property value
                 var totalPropertyValueData = [];
-                for (var i = 0; i < worthSchedule.length; i++) {
-                    var row = worthSchedule[i];
-                    var runDate = row.simulationRunDate;
-                    var value = row.totalPropertyValue;
+                for (i = 0; i < worthSchedule.length; i++) {
+                    row = worthSchedule[i];
+                    runDate = row.simulationRunDate;
+                    value = row.totalPropertyValue;
                     totalPropertyValueData.push({ primary: new Date(runDate), secondary: value });
                 }
                 var totalPropertyValue = {

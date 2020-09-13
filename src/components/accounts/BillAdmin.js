@@ -1,9 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import Bill from './Bill';
 import axios from "axios";
-import Cookies from 'js-cookie';
 var multiSort = require('./multiSort');
-
 const config = require('../../config.json');
 
 

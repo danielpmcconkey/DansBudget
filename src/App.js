@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
@@ -41,7 +41,7 @@ class App extends Component {
 
   async componentDidMount() {
     try {
-      const session = await Auth.currentSession();
+      await Auth.currentSession();
       this.setAuthStatus(true)
       const user = await Auth.currentAuthenticatedUser();
       this.setUser(user);
