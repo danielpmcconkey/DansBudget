@@ -77,12 +77,10 @@ export default class WealthAreaChart extends Component {
     fetchData = async () => {
         try {
 
-            var url = `${config.api.invokeUrlSimulation}/simulations`
+            var url = `${config.api.invokeUrlSimulation}/sims`
 
             const res = await axios.get(url, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'household-id': this.state.householdId,
                     'Authorization': `Bearer ${this.token}`
                 },
                 data: null

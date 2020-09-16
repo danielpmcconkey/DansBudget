@@ -40,12 +40,10 @@ export default class UpcomingItems extends Component {
     fetchData = async () => {
         try {
 
-            var url = `${config.api.invokeUrlSimulation}/simulations`
+            var url = `${config.api.invokeUrlSimulation}/sims`
 
             const res = await axios.get(url, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'household-id': 'authVal',
                     'Authorization': `Bearer ${this.token}`
                 },
                 data: null

@@ -6,7 +6,7 @@
         "invokeUrlProperty": "https://913cq8iz96.execute-api.us-east-1.amazonaws.com/Prod",
         "invokeUrlBudget": "https://6q5xr3eka4.execute-api.us-east-1.amazonaws.com/Prod",
         "invokeUrlEmployer": "https://plgp6nbldd.execute-api.us-east-1.amazonaws.com/Prod",
-        "invokeUrlSimulation": "https://hdbysn6zt8.execute-api.us-east-1.amazonaws.com/Prod"
+        "invokeUrlSimulation": "https://v35wgzk3b9.execute-api.us-east-1.amazonaws.com/prod/"
     },
     "cognito": {
         "REGION": "us-east-1",

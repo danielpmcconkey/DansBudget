@@ -709,10 +709,9 @@ export default class Simulation extends Component {
             };
             const headers = {
                 'Content-Type': 'application/json',
-                'household-id': this.householdId,
                 'Authorization': `Bearer ${this.token}`
             };
-            const res = await axios.post(`${config.api.invokeUrlSimulation}/simulations`, params, { headers: headers });
+            const res = await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
             console.log(`Response: ${res}`);
 
         } catch (err) {

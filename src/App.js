@@ -20,6 +20,7 @@ import Footer from './components/Footer';
 import { Auth } from 'aws-amplify';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import ResultsView from './components/ResultsView';
 
 library.add(faEdit);
 
@@ -28,7 +29,9 @@ class App extends Component {
   state = {
     isAuthenticated: false,
     isAuthenticating: true,
-    user: null
+    user: null,
+    ResultsViewMessage: "No current message to display",
+    ResultsViewMode: "hidden" // hidden, danger, success, warning
   }
 
   setAuthStatus = authenticated => {
@@ -64,8 +67,9 @@ class App extends Component {
         <Router>
           <div>
             <Navbar auth={authProps} />
+            <ResultsView message={this.state.ResultsViewMessage} mode={this.state.ResultsViewMode} />
             <Switch>
-              <Route exact path="/" render={(props) => <Home {...props} auth={authProps} />} />
+              <Route exact path="/" render={(props) => <Home {...props} auth={authProps} ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} />} />
               <Route exact path="/assetAccounts" render={(props) => <AssetAccountAdmin {...props} auth={authProps} />} />
               <Route exact path="/debtAccounts" render={(props) => <DebtAccountAdmin {...props} auth={authProps} />} />
               <Route exact path="/bills" render={(props) => <BillAdmin {...props} auth={authProps} />} />

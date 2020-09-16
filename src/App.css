@@ -62,3 +62,5 @@ body {
 .UpcomingItemsPayoff { color: #0000aa; font-weight: bold;}
 .UpcomingItemsExtraPayment { color: #880000;}
 .UpcomingItemsUnknown {color: #ff6663}
+
+.ResultsViewNoDisplay {visibility: hidden;}

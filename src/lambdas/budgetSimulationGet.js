@@ -12,6 +12,7 @@ exports.handler = async (event, context) => {
     const simulation_id = (event.pathParameters == undefined) ? undefined : event.pathParameters['simulation-id'];
     const loggedInUSer = event.requestContext.authorizer.claims['cognito:username'];
 
+
     if (loggedInUSer == null || loggedInUSer == undefined || loggedInUSer === "") {
         statusCode = 401;
         responseBody = "Unauthorized";
