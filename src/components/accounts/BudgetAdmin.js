@@ -51,8 +51,9 @@ export default class BudgetAdmin extends Component {
         budgets: multiSort.multiSort([...this.state.budgets, this.state.newBudget], "nickName", true)
       });
       await this.resetNewBudget();
+      this.props.onChangeMessage("Budget item added", "success");
     } catch (err) {
-      console.log(`Unable to add budget: ${err}`);
+      this.props.onChangeMessage(`Unable to add budget item: ${err}`, "danger");
     }
   }
   handleUpdateBudget = async (budgetId, nickName, amount) => {
@@ -80,9 +81,10 @@ export default class BudgetAdmin extends Component {
       this.setState({
         budgets: multiSort.multiSort(updatedBudgets, "nickName", true)
       });
+      this.props.onChangeMessage("Budget item updated", "success");
 
     } catch (err) {
-      console.log(`Unable to update budget: ${err}`);
+      this.props.onChangeMessage(`Unable to update budget item: ${err}`, "danger");
     }
   }
   handleDeleteBudget = async (budgetId, event) => {
@@ -101,8 +103,9 @@ export default class BudgetAdmin extends Component {
         this.setState({
           budgets: multiSort.multiSort(updatedBudgets, "nickName", true)
         });
+        this.props.onChangeMessage("Budget item deleted", "success");
       } catch (err) {
-        console.log(`Unable to delete budget: ${err}`);
+        this.props.onChangeMessage(`Unable to delete budget item: ${err}`, "danger");
       }
     }
   }
@@ -128,7 +131,7 @@ export default class BudgetAdmin extends Component {
       });
 
     } catch (err) {
-      console.log(`An error has occurred: ${err}`);
+      this.props.onChangeMessage(`Unable to pull budget items from database: ${err}`, "danger");
     }
   }
   onNickNameChange = event => this.setState({ newBudget: { ...this.state.newBudget, "nickName": event.target.value } });

@@ -61,8 +61,9 @@ export default class AssetAccountAdmin extends Component {
                 assetAccounts: multiSort.multiSort([...this.state.assetAccounts, this.state.newAssetAccount], "balance", false)
             });
             await this.resetNewAssetAccount();
+            this.props.onChangeMessage("Asset account saved", "success");
         } catch (err) {
-            console.log(`Unable to add asset account: ${err}`);
+            this.props.onChangeMessage(`Unable to add asset account: ${err}`, "danger");
         }
     }
 
@@ -94,9 +95,10 @@ export default class AssetAccountAdmin extends Component {
             this.setState({
                 assetAccounts: multiSort.multiSort(updatedAssetAccounts, "balance", false)
             });
+            this.props.onChangeMessage("Asset account updated", "success");
 
         } catch (err) {
-            console.log(`Unable to update asset account: ${err}`);
+            this.props.onChangeMessage(`Unable to update asset account: ${err}`, "danger");
         }
     }
 
@@ -116,8 +118,9 @@ export default class AssetAccountAdmin extends Component {
                 this.setState({
                     assetAccounts: multiSort.multiSort(updatedAssetAccounts, "balance", false)
                 });
+                this.props.onChangeMessage("Asset account deleted", "success");
             } catch (err) {
-                console.log(`Unable to delete asset account: ${err}`);
+                this.props.onChangeMessage(`Unable to delete asset account: ${err}`, "danger");
             }
         }
     }
@@ -141,7 +144,7 @@ export default class AssetAccountAdmin extends Component {
             });
 
         } catch (err) {
-            console.log(`An error has occurred: ${err}`);
+            this.props.onChangeMessage(`Error pulling asset accounts from database: ${err}`, "danger");
         }
     }
 
@@ -225,7 +228,7 @@ export default class AssetAccountAdmin extends Component {
                                             <div className="control">
                                                 <button type="submit" className="button is-primary is-medium">
                                                     Add asset  account
-                      </button>
+                                                </button>
                                             </div>
                                         </div>
                                     </form>

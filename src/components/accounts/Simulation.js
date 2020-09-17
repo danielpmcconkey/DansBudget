@@ -16,7 +16,6 @@ export default class Simulation extends Component {
 
     state = {
         isUserAuthenticated: false,
-        simOutcomeText: "",
         debugMessages: [],
         payScheduleStateful: [],
         worthScheduleStateful: [],
@@ -85,13 +84,14 @@ export default class Simulation extends Component {
                 firstDayOfSim = false;
             }
 
-            this.simOutcomeText = "Simulation successful"
+
+            this.props.onChangeMessage("Simulation successful", "success");
 
 
 
 
         } catch (err) {
-            console.log(`An error has occurred: ${err}`);
+            this.props.onChangeMessage(`Error during simulation run: ${err}`, "danger");
         } finally {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
@@ -99,95 +99,7 @@ export default class Simulation extends Component {
             this.setState({ isLoading: false });
         }
     }
-    // deleteMe = async () => {
-    //     var url = `${config.api.invokeUrlSimulation}/simulations`
 
-    //     const res = await axios.get(url, {
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'household-id': 'authVal',
-    //             'Authorization': `Bearer ${this.token}`
-    //         },
-    //         data: null
-    //     });
-    //     if (res.data !== undefined) {
-    //         var dedupedPaySchedule = [];
-    //         var dedupedWorthSchedule = [];
-    //         var simIterator = 0;
-    //         for (simIterator = 0; simIterator < res.data.length; simIterator++) {
-    //             //console.log(`in sim iterat ${res.data.length}`);
-    //             var thisSim = res.data[simIterator];
-    //             var thisPaySchedule = thisSim.paySchedule;
-    //             var thisWorthSchedule = thisSim.worthSchedule;
-    //             //console.log(`thisPaySchedule ${JSON.stringify(thisPaySchedule)}`);
-    //             var i = 0;
-    //             var row = [];
-
-    //             // iterate through pay schedule and add unique items to dedepedPaySchedule
-    //             for (i = 0; i < thisPaySchedule.length; i++) {
-    //                 //console.log(`in thisPaySchedule iterat ${thisPaySchedule.length}`);
-    //                 row = thisPaySchedule[i];
-    //                 if (this.isPayScheduleRowUnique(row, dedupedPaySchedule) &&
-    //                     moment(row.simulationRunDate).isBefore(moment())
-    //                 ) {
-    //                     dedupedPaySchedule.push(row);
-    //                 }
-    //             }
-    //             // console.log(`dedupedPaySchedule ${dedupedPaySchedule.length}`);
-    //             // iterate through worth schedule and add unique items to dedepedWorthSchedule
-    //             for (i = 0; i < thisWorthSchedule.length; i++) {
-    //                 row = thisWorthSchedule[i];
-    //                 if (this.isWorthScheduleRowUnique(row, dedupedWorthSchedule) &&
-    //                     moment(row.simulationRunDate).isBefore(moment())
-    //                 ) {
-    //                     dedupedWorthSchedule.push(row);
-    //                 }
-    //             }
-    //             //console.log(`dedupedWorthSchedule ${dedupedWorthSchedule.length}`);
-    //         }
-    //         this.setState({ payScheduleStateful: dedupedPaySchedule });
-    //         this.setState({ worthScheduleStateful: dedupedWorthSchedule });
-    //         console.log("Fin");
-    //         this.setState({ isLoading: false });
-
-    //     } else {
-    //         throw new Error("Data from API is undefined.");
-    //     } // end if data != undefined
-    // }
-    // isPayScheduleRowUnique = (inRow, listToCheckAgainst) => {
-
-    //     for (var i = 0; i < listToCheckAgainst.length; i++) {
-    //         var thisRow = listToCheckAgainst[i];
-    //         if (inRow.simulationRunDate === thisRow.simulationRunDate &&
-    //             inRow.accountName === thisRow.accountName &&
-    //             inRow.debits === thisRow.debits &&
-    //             inRow.credits === thisRow.credits &&
-    //             inRow.checkingBal === thisRow.checkingBal &&
-    //             inRow.savingsBal === thisRow.savingsBal &&
-    //             inRow.comment === thisRow.comment
-    //         ) {
-    //             return false;
-    //         }
-    //     }
-    //     return true;
-    // }
-    // isWorthScheduleRowUnique = (inRow, listToCheckAgainst) => {
-
-    //     for (var i = 0; i < listToCheckAgainst.length; i++) {
-    //         var thisRow = listToCheckAgainst[i];
-    //         if (inRow.simulationRunDate === thisRow.simulationRunDate &&
-    //             inRow.highRateDebt === thisRow.highRateDebt &&
-    //             inRow.lowRateDebt === thisRow.lowRateDebt &&
-    //             inRow.taxableAssets === thisRow.taxableAssets &&
-    //             inRow.taxAdvantagedAssets === thisRow.taxAdvantagedAssets &&
-    //             inRow.totalPropertyValue === thisRow.totalPropertyValue &&
-    //             inRow.netWorth === thisRow.netWorth
-    //         ) {
-    //             return false;
-    //         }
-    //     }
-    //     return true;
-    // }
 
     /* #region simulation functions */
     accrueInterest = () => {
@@ -712,10 +624,11 @@ export default class Simulation extends Component {
                 'Authorization': `Bearer ${this.token}`
             };
             const res = await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
-            console.log(`Response: ${res}`);
+            this.props.onChangeMessage("Simulation data saved", "success");
 
         } catch (err) {
             console.log(`Unable to add simulation: ${err}`);
+            this.props.onChangeMessage(`Unable to save simulation data: ${err}`, "danger");
         }
     }
     transferFunds = (fromAccount, toAccount, amount) => {

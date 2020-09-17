@@ -55,8 +55,9 @@ export default class PropertyAdmin extends Component {
         properties: multiSort.multiSort([...this.state.properties, this.state.newProperty], "homeValue", false)
       });
       await this.resetNewProperty();
+      this.props.onChangeMessage("Property added", "success");
     } catch (err) {
-      console.log(`Unable to add property: ${err}`);
+      this.props.onChangeMessage(`Unable to add property: ${err}`, "danger");
     }
   }
 
@@ -86,9 +87,9 @@ export default class PropertyAdmin extends Component {
       this.setState({
         properties: multiSort.multiSort(updatedProperties, "homeValue", false)
       });
-
+      this.props.onChangeMessage("Property updated", "success");
     } catch (err) {
-      console.log(`Unable to update property: ${err}`);
+      this.props.onChangeMessage(`Unable to update property: ${err}`, "danger");
     }
   }
 
@@ -108,8 +109,9 @@ export default class PropertyAdmin extends Component {
         this.setState({
           properties: multiSort.multiSort(updatedProperties, "homeValue", false)
         });
+        this.props.onChangeMessage("Property deleted", "success");
       } catch (err) {
-        console.log(`Unable to delete property: ${err}`);
+        this.props.onChangeMessage(`Unable to delete property: ${err}`, "danger");
       }
     }
   }
@@ -134,7 +136,7 @@ export default class PropertyAdmin extends Component {
       });
 
     } catch (err) {
-      console.log(`An error has occurred: ${err}`);
+      this.props.onChangeMessage(`Unable to pull properties from the database: ${err}`, "danger");
     }
   }
 

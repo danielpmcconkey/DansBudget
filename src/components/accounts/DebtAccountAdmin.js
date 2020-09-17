@@ -66,8 +66,9 @@ export default class DebtAccountAdmin extends Component {
         debtAccounts: multiSort.multiSort([...this.state.debtAccounts, this.state.newDebtAccount], "balance", false)
       });
       await this.resetNewDebtAccount();
+      this.props.onChangeMessage("Debit account added", "success");
     } catch (err) {
-      console.log(`Unable to add debt account: ${err}`);
+      this.props.onChangeMessage(`Unable to add debit account: ${err}`, "danger");
     }
   }
   handleUpdateDebtAccount = async (debtAccountId, nickName, balance, rate, minPayment, lastPaidDate, payFrequency) => {
@@ -103,9 +104,10 @@ export default class DebtAccountAdmin extends Component {
       this.setState({
         debtAccounts: multiSort.multiSort(updatedDebtAccounts, "balance", false)
       });
+      this.props.onChangeMessage("Debit account updated", "success");
 
     } catch (err) {
-      console.log(`Unable to update debt account: ${err}`);
+      this.props.onChangeMessage(`Unable to update debit account: ${err}`, "danger");
     }
   }
   handleDeleteDebtAccount = async (debtAccountId, event) => {
@@ -124,8 +126,9 @@ export default class DebtAccountAdmin extends Component {
         this.setState({
           debtAccounts: multiSort.multiSort(updatedDebtAccounts, "balance", false)
         });
+        this.props.onChangeMessage("Debit account deleted", "success");
       } catch (err) {
-        console.log(`Unable to delete debt account: ${err}`);
+        this.props.onChangeMessage(`Unable to delete debit account: ${err}`, "danger");
       }
     }
   }
@@ -151,7 +154,7 @@ export default class DebtAccountAdmin extends Component {
       });
 
     } catch (err) {
-      console.log(`An error has occurred: ${err}`);
+      this.props.onChangeMessage(`Unable to pull debit accounts from database: ${err}`, "danger");
     }
   }
 

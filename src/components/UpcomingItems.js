@@ -118,6 +118,7 @@ export default class UpcomingItems extends Component {
 
         } catch (err) {
             console.log(`An error has occurred: ${err}`);
+            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
         }
 
     }

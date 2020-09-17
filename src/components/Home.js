@@ -5,26 +5,30 @@ import UpcomingItems from './UpcomingItems';
 //export default function Home(props) {
 export default class Home extends Component {
 
-    state = {
-        ResultsViewMessage: "No current message to display",
-        ResultsViewMode: "hidden" // hidden, danger, success, warning
-    }
+    // state = {
+    //     ResultsViewMessage: "No current message to display",
+    //     ResultsViewMode: "hidden" // hidden, danger, success, warning
+    // }
     componentDidMount = () => {
-        this.setState({
-            ResultsViewMessage: this.props.ResultsViewMessage,
-            ResultsViewMode: this.props.ResultsViewMode
-        });
+        // this.setState({
+        //     ResultsViewMessage: this.props.ResultsViewMessage,
+        //     ResultsViewMode: this.props.ResultsViewMode
+        // });
 
-        this.setState({ ResultsViewMode: "danger" });
+        //this.setState({ ResultsViewMode: "danger" });
+
+    }
+    onChangeMessage = (ResultsViewMessage, ResultsViewMode) => {
+        this.props.onChangeMessage(ResultsViewMessage, ResultsViewMode);
     }
 
     render() {
         return (
             <Fragment>
-                <Hero auth={this.props.auth} />
+                <Hero auth={this.props.auth} onChangeMessage={this.onChangeMessage} />
                 <div className="box cta">
                     <div className="has-text-centered">
-                        <UpcomingItems auth={this.props.auth} ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} />
+                        <UpcomingItems auth={this.props.auth} onChangeMessage={this.onChangeMessage} />
                     </div>
                 </div>
             </Fragment>

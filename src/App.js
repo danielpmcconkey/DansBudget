@@ -54,6 +54,8 @@ class App extends Component {
     this.setState({ isAuthenticating: false });
   }
 
+
+
   render() {
     const authProps = {
       isAuthenticated: this.state.isAuthenticated,
@@ -61,28 +63,32 @@ class App extends Component {
       setAuthStatus: this.setAuthStatus,
       setUser: this.setUser
     }
+    const onChangeMessage = (ResultsViewMessage, ResultsViewMode) => {
+      this.setState({ ResultsViewMessage: ResultsViewMessage });
+      this.setState({ ResultsViewMode: ResultsViewMode });
+    }
     return (
       !this.state.isAuthenticating &&
       <div className="App">
         <Router>
           <div>
             <Navbar auth={authProps} />
-            <ResultsView message={this.state.ResultsViewMessage} mode={this.state.ResultsViewMode} />
+            <ResultsView ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} />
             <Switch>
-              <Route exact path="/" render={(props) => <Home {...props} auth={authProps} ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} />} />
-              <Route exact path="/assetAccounts" render={(props) => <AssetAccountAdmin {...props} auth={authProps} />} />
-              <Route exact path="/debtAccounts" render={(props) => <DebtAccountAdmin {...props} auth={authProps} />} />
-              <Route exact path="/bills" render={(props) => <BillAdmin {...props} auth={authProps} />} />
-              <Route exact path="/budgets" render={(props) => <BudgetAdmin {...props} auth={authProps} />} />
-              <Route exact path="/properties" render={(props) => <PropertyAdmin {...props} auth={authProps} />} />
-              <Route exact path="/simulation" render={(props) => <Simulation {...props} auth={authProps} />} />
-              <Route exact path="/login" render={(props) => <LogIn {...props} auth={authProps} />} />
-              <Route exact path="/register" render={(props) => <Register {...props} auth={authProps} />} />
-              <Route exact path="/forgotpassword" render={(props) => <ForgotPassword {...props} auth={authProps} />} />
-              <Route exact path="/forgotpasswordverification" render={(props) => <ForgotPasswordVerification {...props} auth={authProps} />} />
-              <Route exact path="/changepassword" render={(props) => <ChangePassword {...props} auth={authProps} />} />
-              <Route exact path="/changepasswordconfirmation" render={(props) => <ChangePasswordConfirm {...props} auth={authProps} />} />
-              <Route exact path="/welcome" render={(props) => <Welcome {...props} auth={authProps} />} />
+              <Route exact path="/" render={(props) => <Home {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/assetAccounts" render={(props) => <AssetAccountAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/debtAccounts" render={(props) => <DebtAccountAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/bills" render={(props) => <BillAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/budgets" render={(props) => <BudgetAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/properties" render={(props) => <PropertyAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/simulation" render={(props) => <Simulation {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/login" render={(props) => <LogIn {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/register" render={(props) => <Register {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/forgotpassword" render={(props) => <ForgotPassword {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/forgotpasswordverification" render={(props) => <ForgotPasswordVerification {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/changepassword" render={(props) => <ChangePassword {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/changepasswordconfirmation" render={(props) => <ChangePasswordConfirm {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/welcome" render={(props) => <Welcome {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
             </Switch>
             <Footer />
           </div>

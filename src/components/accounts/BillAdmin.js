@@ -61,8 +61,9 @@ export default class BillAdmin extends Component {
         bills: multiSort.multiSort([...this.state.bills, this.state.newBill], "nickName", true)
       });
       await this.resetNewBill();
+      this.props.onChangeMessage("Bill added", "success");
     } catch (err) {
-      console.log(`Unable to add bill: ${err}`);
+      this.props.onChangeMessage(`Unable to add bill: ${err}`, "danger");
     }
   }
 
@@ -96,9 +97,10 @@ export default class BillAdmin extends Component {
       this.setState({
         bills: multiSort.multiSort(updatedBills, "nickName", true)
       });
+      this.props.onChangeMessage("Bill updated", "success");
 
     } catch (err) {
-      console.log(`Unable to update bill: ${err}`);
+      this.props.onChangeMessage(`Unable to update bill: ${err}`, "danger");
     }
   }
 
@@ -118,8 +120,9 @@ export default class BillAdmin extends Component {
         this.setState({
           bills: multiSort.multiSort(updatedBills, "nickName", true)
         });
+        this.props.onChangeMessage("Bill deleted", "success");
       } catch (err) {
-        console.log(`Unable to delete bill: ${err}`);
+        this.props.onChangeMessage(`Unable to delete bill: ${err}`, "danger");
       }
     }
   }
@@ -147,7 +150,7 @@ export default class BillAdmin extends Component {
       });
 
     } catch (err) {
-      console.log(`An error has occurred: ${err}`);
+      this.props.onChangeMessage(`Unable to pull bills from database: ${err}`, "danger");
     }
   }
 
