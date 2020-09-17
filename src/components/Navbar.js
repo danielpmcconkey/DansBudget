@@ -1,17 +1,11 @@
 import React, { Component } from 'react'
 import { Auth } from 'aws-amplify';
+import { Redirect } from 'react-router-dom';
+
+
 
 export default class Navbar extends Component {
-    handleLogOut = async event => {
-        event.preventDefault();
-        try {
-            Auth.signOut();
-            this.props.auth.setAuthStatus(false);
-            this.props.auth.setUser(null);
-        } catch (error) {
-            console.log(error.message);
-        }
-    }
+
 
     addListenerToHamburger = () => {
         var burger = document.querySelector('.navbar-burger');
@@ -97,7 +91,7 @@ export default class Navbar extends Component {
                                     </div>
                                 )}
                                 {this.props.auth.isAuthenticated && (
-                                    <a href="/" onClick={this.handleLogOut} className="button is-light">
+                                    <a href="/logout" className="button is-light">
                                         Log out
                                     </a>
                                 )}

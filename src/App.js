@@ -10,6 +10,7 @@ import BudgetAdmin from './components/accounts/BudgetAdmin';
 import PropertyAdmin from './components/accounts/PropertyAdmin';
 import Simulation from './components/accounts/Simulation';
 import LogIn from './components/auth/LogIn';
+import LogOut from './components/auth/LogOut';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import ForgotPasswordVerification from './components/auth/ForgotPasswordVerification';
@@ -49,7 +50,13 @@ class App extends Component {
       const user = await Auth.currentAuthenticatedUser();
       this.setUser(user);
     } catch (error) {
-      console.log(error);
+      if (error === "No current user") {
+        // swallow error
+      }
+      else {
+        this.setState({ ResultsViewMessage: `An error has occurred: ${error}` });
+        this.setState({ ResultsViewMode: "danger" });
+      }
     }
     this.setState({ isAuthenticating: false });
   }
@@ -83,6 +90,7 @@ class App extends Component {
               <Route exact path="/properties" render={(props) => <PropertyAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/simulation" render={(props) => <Simulation {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/login" render={(props) => <LogIn {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/logout" render={(props) => <LogOut {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/register" render={(props) => <Register {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/forgotpassword" render={(props) => <ForgotPassword {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/forgotpasswordverification" render={(props) => <ForgotPasswordVerification {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />

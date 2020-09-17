@@ -71,7 +71,7 @@ export default class PropertyAdmin extends Component {
         "nickName": nickName,
         "housingValueIncreaseRate": Number(housingValueIncreaseRate)
       };
-      console.log(params);
+      // console.log(params);
       const headers = {
         'Content-Type': 'application/json',
         'household-id': this.state.householdId,
@@ -119,7 +119,7 @@ export default class PropertyAdmin extends Component {
     try {
       var url = `${config.api.invokeUrlProperty}/properties`
       var idToken = `Bearer ${this.token}`;
-      console.log(idToken);
+      // console.log(idToken);
 
       const requestConfig = {
         headers: {
@@ -130,7 +130,7 @@ export default class PropertyAdmin extends Component {
       };
 
       const res = await axios.get(url, requestConfig);
-      console.log(`logging state: ${JSON.stringify(this.state)}`);
+      // console.log(`logging state: ${JSON.stringify(this.state)}`);
       this.setState({
         properties: multiSort.multiSort(res.data, "homeValue", false)
       });

@@ -40,7 +40,7 @@ class ChangePassword extends Component {
         // AWS Cognito integration here
         try {
             const user = await Auth.currentAuthenticatedUser();
-            console.log(user);
+            // console.log(user);
             await Auth.changePassword(
                 user,
                 this.state.oldpassword,
@@ -48,7 +48,8 @@ class ChangePassword extends Component {
             );
             this.props.history.push('/ChangePasswordConfirmation');
         } catch (error) {
-            console.log(error);
+            this.props.onChangeMessage(`An error has occurred: ${error}`, "danger");
+
         }
     };
 

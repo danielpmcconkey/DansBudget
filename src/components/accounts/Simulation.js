@@ -95,7 +95,7 @@ export default class Simulation extends Component {
         } finally {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
-            console.log("Fin");
+            // console.log("Fin");
             this.setState({ isLoading: false });
         }
     }
@@ -627,7 +627,7 @@ export default class Simulation extends Component {
             this.props.onChangeMessage("Simulation data saved", "success");
 
         } catch (err) {
-            console.log(`Unable to add simulation: ${err}`);
+            // console.log(`Unable to add simulation: ${err}`);
             this.props.onChangeMessage(`Unable to save simulation data: ${err}`, "danger");
         }
     }

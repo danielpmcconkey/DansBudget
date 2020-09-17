@@ -39,11 +39,12 @@ class LogIn extends Component {
         try {
             const user = await Auth.signIn(this.state.username, this.state.password);
             //console.log('user log');
-            console.log(user);
+            //console.log(user);
             //console.log(user.storage.CognitoIdentityServiceProvider);//"5th6ev67g1cnc0k8ponnu5d25u".danmcconkey.idToken);
             //console.log('end user log');
             this.props.auth.setAuthStatus(true);
             this.props.auth.setUser(user);
+            //alert(JSON.stringify(this.props));
             this.props.history.push("/");
         } catch (error) {
             this.setState({
@@ -52,6 +53,7 @@ class LogIn extends Component {
                     cognito: error
                 }
             })
+            this.props.onChangeMessage(`An error occurred on log in: ${error}`, "danger");
         }
     };
 

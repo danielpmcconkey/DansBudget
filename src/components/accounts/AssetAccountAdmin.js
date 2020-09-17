@@ -129,7 +129,7 @@ export default class AssetAccountAdmin extends Component {
         //this.addemall();
         try {
 
-            console.log(`token: ${this.token}`);
+            //console.log(`token: ${this.token}`);
             var url = `${config.api.invokeUrlAssetAccount}/asset-accounts`
             const res = await axios.get(url, {
                 headers: {

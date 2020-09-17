@@ -48,7 +48,8 @@ class Register extends Component {
                     email: email
                 }
             });
-            console.log(signUpResponse);
+            //console.log(signUpResponse);
+            this.props.onChangeMessage(signUpResponse, "success");
             this.props.history.push("/welcome");
         } catch (error) {
             this.setState({

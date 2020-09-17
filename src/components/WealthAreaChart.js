@@ -168,10 +168,10 @@ export default class WealthAreaChart extends Component {
                 this.setState({ data: dbData });
             }
 
-            // console.log(`db data: ${JSON.stringify(dbData)}`);
+
 
         } catch (err) {
-            console.log(`An error has occurred: ${err}`);
+            this.props.onChangeMessage(`An error has while fetching chart data: ${err}`, "danger");
         }
 
     }

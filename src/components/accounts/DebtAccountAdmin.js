@@ -85,7 +85,7 @@ export default class DebtAccountAdmin extends Component {
         "lastPaidDate": lastPaidDate,
         "payFrequency": payFrequency
       };
-      console.log(params);
+      // console.log(params);
       const headers = {
         'Content-Type': 'application/json',
         'household-id': this.state.householdId,
@@ -135,10 +135,10 @@ export default class DebtAccountAdmin extends Component {
   fetchDebtAccounts = async () => {
     //this.addemall();
     try {
-      console.log(`token: ${this.token}`);
+      // console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlDebtAccount}/debt-accounts`
       var idToken = `Bearer ${this.token}`;
-      console.log(idToken);
+      // console.log(idToken);
 
       const requestConfig = {
         headers: {

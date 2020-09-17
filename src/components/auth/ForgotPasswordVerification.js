@@ -43,8 +43,9 @@ class ForgotPasswordVerification extends Component {
                 this.state.newpassword
             );
             this.props.history.push('/ChangePasswordConfirmation');
-        } catch (error) {
-            console.log(error);
+        } catch (err) {
+            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
+            //console.log(error);
         }
     };
 

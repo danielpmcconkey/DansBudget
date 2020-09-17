@@ -65,7 +65,7 @@ export default class BudgetAdmin extends Component {
         "nickName": nickName,
         "amount": Number(amount)
       };
-      console.log(params);
+      //console.log(params);
       const headers = {
         'Content-Type': 'application/json',
         'household-id': this.state.householdId,
@@ -112,10 +112,10 @@ export default class BudgetAdmin extends Component {
   fetchBudgets = async () => {
     //this.addemall();
     try {
-      console.log(`token: ${this.token}`);
+      // console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlBudget}/budgets`
       var idToken = `Bearer ${this.token}`;
-      console.log(idToken);
+      // console.log(idToken);
 
       const requestConfig = {
         headers: {
