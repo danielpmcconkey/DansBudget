@@ -14,7 +14,11 @@ export default function ResizableBox({
     return (
         <div>
             {resizable ? (
-                <ReactResizableBox width={width} height={height}>
+                <ReactResizableBox
+                    width={width}
+                    height={height}
+                    handleSize={[50, 50]}
+                >
                     <div
                         style={{
                             ...style,

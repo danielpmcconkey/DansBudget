@@ -173,11 +173,12 @@ export default class AssetAccountAdmin extends Component {
                             <h1 className="title is-1">Manage Asset Accounts</h1>
 
                             <div className="columns">
-                                <div className="column is-one-third">
+                                <div className="column is-one-third has-background-grey-lighter">
                                     <form onSubmit={event => this.handleAddAssetAccount(this.state.newAssetAccount.assetAccountId, event)}>
                                         <p className="subtitle is-5">Add a new asset account using the form below:</p>
                                         <div className="field has-addons">
                                             <div className="control">
+                                                <p className="fieldLabel">Enter name</p>
                                                 <input
                                                     className="input is-medium"
                                                     type="text"
@@ -189,6 +190,7 @@ export default class AssetAccountAdmin extends Component {
                                         </div>
                                         <div className="field has-addons">
                                             <div className="control">
+                                                <p className="fieldLabel">Enter current balance</p>
                                                 <input
                                                     className="input is-medium"
                                                     type="text"
@@ -200,6 +202,7 @@ export default class AssetAccountAdmin extends Component {
                                         </div>
                                         <div className="field has-addons">
                                             <div className="control">
+                                                <p className="fieldLabel">Enter estimated rate of return</p>
                                                 <input
                                                     className="input is-medium"
                                                     type="text"
@@ -212,6 +215,7 @@ export default class AssetAccountAdmin extends Component {
 
                                         <div className="field has-addons">
                                             <div className="control">
+                                                <p className="fieldLabel">Is this a tax advantaged account?</p>
                                                 <select
                                                     className="select is-medium"
                                                     value={this.state.newAssetAccount.isTaxAdvantaged}
