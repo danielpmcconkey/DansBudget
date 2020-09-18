@@ -114,7 +114,7 @@ export default class BudgetAdmin extends Component {
     try {
       // console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlBudget}/budgets`
-      var idToken = `Bearer ${this.token}`;
+      //var idToken = `Bearer ${this.token}`;
       // console.log(idToken);
 
       const requestConfig = {

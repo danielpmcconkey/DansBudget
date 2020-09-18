@@ -137,8 +137,6 @@ export default class DebtAccountAdmin extends Component {
     try {
       // console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlDebtAccount}/debt-accounts`
-      var idToken = `Bearer ${this.token}`;
-      // console.log(idToken);
 
       const requestConfig = {
         headers: {

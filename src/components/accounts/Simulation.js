@@ -7,7 +7,7 @@ import WorthScheduleTable from '../WorthScheduleTable';
 const config = require('../../config.json');
 const moment = require('moment');
 const multiSort = require('../sharedFunctions/multiSort');
-const getMostRecentSimFromDBReturn = require('../sharedFunctions/getMostRecentSimFromDBReturn');
+//const getMostRecentSimFromDBReturn = require('../sharedFunctions/getMostRecentSimFromDBReturn');
 
 
 export default class Simulation extends Component {
@@ -623,7 +623,7 @@ export default class Simulation extends Component {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
             };
-            const res = await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
+            await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
             this.props.onChangeMessage("Simulation data saved", "success");
 
         } catch (err) {

@@ -133,7 +133,6 @@ export default class BillAdmin extends Component {
     try {
       //console.log(`token: ${this.token}`);
       var url = `${config.api.invokeUrlBill}/bills`
-      var idToken = `Bearer ${this.token}`;
       //console.log(idToken);
 
       const requestConfig = {

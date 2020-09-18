@@ -118,7 +118,7 @@ export default class PropertyAdmin extends Component {
   fetchProperties = async () => {
     try {
       var url = `${config.api.invokeUrlProperty}/properties`
-      var idToken = `Bearer ${this.token}`;
+      //var idToken = `Bearer ${this.token}`;
       // console.log(idToken);
 
       const requestConfig = {

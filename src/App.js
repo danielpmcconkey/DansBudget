@@ -45,10 +45,31 @@ class App extends Component {
 
   async componentDidMount() {
     try {
-      await Auth.currentSession();
-      this.setAuthStatus(true)
-      const user = await Auth.currentAuthenticatedUser();
-      this.setUser(user);
+      const authData = await Auth.currentSession(); // idToken.payload.auth_time
+      const authTime = authData.idToken.payload.auth_time;
+      const nowTime = Date.now() / 1000;
+      //console.log(`number of seconds since authN: ${nowTime - authTime} | ${JSON.stringify(authData.idToken.payload)}`);
+
+      if (nowTime - authTime > (60 * 60 * 2)) {  // 2 hours
+        // auto log out. no sessions allowed longer than 2 hours
+        // this is to mitigate the fact that amplify seems to
+        // refresh the token no matter what if expired
+        Auth.signOut();
+        this.setAuthStatus(false);
+        this.setUser(null);
+        this.setState({
+          ResultsViewMessage: "You have been automatically logged out.",
+          ResultsViewMode: "warning"
+        });
+
+      } else {
+        this.setAuthStatus(true)
+        const user = await Auth.currentAuthenticatedUser();
+        this.setUser(user);
+      }
+
+
+
     } catch (error) {
       if (error === "No current user") {
         // swallow error
