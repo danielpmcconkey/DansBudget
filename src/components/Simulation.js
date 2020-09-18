@@ -1,12 +1,12 @@
 import React, { Component, Fragment } from 'react';
 import axios from "axios";
-import WealthAreaChart from '../WealthAreaChart';
-import LoaderSpinner from '../LoaderSpinner';
-import PayScheduleTable from '../PayScheduleTable';
-import WorthScheduleTable from '../WorthScheduleTable';
-const config = require('../../config.json');
+import WealthAreaChart from './WealthAreaChart';
+import LoaderSpinner from './LoaderSpinner';
+import PayScheduleTable from './PayScheduleTable';
+import WorthScheduleTable from './WorthScheduleTable';
+const config = require('../config.json');
 const moment = require('moment');
-const multiSort = require('../sharedFunctions/multiSort');
+const multiSort = require('./sharedFunctions/multiSort');
 //const getMostRecentSimFromDBReturn = require('../sharedFunctions/getMostRecentSimFromDBReturn');
 
 

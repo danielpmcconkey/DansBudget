@@ -3,17 +3,6 @@ import React, { Component, Fragment } from 'react';
 
 export default class ResultsView extends Component {
 
-    // state = {
-    //     ResultsViewMessage: "Original message",
-    //     ResultsViewMode: "danger",
-    // }
-    // componentDidMount = () => {
-    //     this.setState({
-    //         ResultsViewMessage: this.props.ResultsViewMessage,
-    //         ResultsViewMode: this.props.ResultsViewMode
-    //     });
-    // }
-
     render() {
         return (
             <Fragment>
