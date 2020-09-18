@@ -26,8 +26,8 @@ export default class Navbar extends Component {
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <a className="navbar-item" href="/">
-                        Dan's Budget
-                     </a>
+                        <img src="dansbudgetlogo.png" alt="Dan's Budget" />
+                    </a>
                     {/* note: do not put an href in the below anchor, despite what it says in compiler warnings
                     doing so will break the burger's "expand" ability. the below comment will tell the
                     compiler to ignore it */}
