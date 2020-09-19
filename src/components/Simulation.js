@@ -20,7 +20,9 @@ export default class Simulation extends Component {
         payScheduleStateful: [],
         worthScheduleStateful: [],
         reactChartsData: {},
-        isLoading: true
+        isLoading: true,
+        isSaving: false,
+        isSaveComplete: false
     }
     /* #region sim properties */
     assetAccounts = [];
@@ -52,16 +54,8 @@ export default class Simulation extends Component {
     runSim = async () => {
         try {
             await this.setup();
-            var simMonthlyCycleDay = moment().date();
-            if (simMonthlyCycleDay > 28) simMonthlyCycleDay = 28; // not all months have a 29th day
-            var firstDayOfSim = true;
-
 
             while (this.simulationRunDate <= this.endDate) {
-                // run at the beginning and every month thereafter
-                if (firstDayOfSim || this.simulationRunDate.date() === simMonthlyCycleDay) {
-                    this.transferToDailySpendAccount();
-                }
 
                 this.dailySpend();
                 this.accrueInterest();
@@ -69,19 +63,19 @@ export default class Simulation extends Component {
                 this.checkForBonus();
                 this.payBills();
 
-                if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() === 1)  // last day of the month
-                {
+                // last day of the month
+                if (this.addDaysWithoutSetting(this.simulationRunDate, 1).date() === 1) {
                     this.tryToPayExtra();
                     this.tryToInvestExtra();
                 }
-                if (this.simulationRunDate.date() === 1)  // first day of the month
-                {
+                // first day of the month
+                if (this.simulationRunDate.date() === 1) {
                     this.calculateNetWorth();
                 }
 
 
                 this.simulationRunDate.add(1, "days");
-                firstDayOfSim = false;
+                // firstDayOfSim = false;
             }
 
 
@@ -118,6 +112,7 @@ export default class Simulation extends Component {
             var property = this.properties[i];
             this.compoundDailyProperty(property);
         }
+
     }
     bonusDay = (e) => {
         // first find tax and withholdings percent
@@ -189,7 +184,7 @@ export default class Simulation extends Component {
         if (this.primaryCheckingAccount.balance < amountDue) {
             // transfer needed
             var oneMonthsBurn = this.billsMonthlySpend + this.budgetsMonthlySpend + this.debtMonthlySpend;
-            var oneWeeksBurn = oneMonthsBurn * 12 / 52;
+            var oneWeeksBurn = (oneMonthsBurn * 12) / 52;
             // first try to transfer a month's worth of burn rate
             if (this.primarySavingAccount.balance > oneMonthsBurn) {
                 this.transferFunds(this.primarySavingAccount, this.primaryCheckingAccount, oneMonthsBurn);
@@ -208,18 +203,25 @@ export default class Simulation extends Component {
             // in case the amount due was greater than monthly or weekly burn
             if (this.primaryCheckingAccount.balance < amountDue) this.checkFundsAvailabilityAndTransferIfNeededChecking(amountDue);
         }
+
     }
     checkFundsAvailabilityAndTransferIfNeededSpend = () => {
 
         if (this.dailySpendAccount.balance < this.budgetsDailySpend) {
-            // transfer needed. only transfer one day's worth as we have a regular transfer schedule already
-            this.checkFundsAvailabilityAndTransferIfNeededChecking(this.budgetsDailySpend);
-            this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, this.budgetsDailySpend);
+            // transfer needed. 
+            // try to transfer 2 weeks of daily spend
+            var twoWeeksSpend = this.budgetsDailySpend * 14;
+            this.checkFundsAvailabilityAndTransferIfNeededChecking(twoWeeksSpend);
+            this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, twoWeeksSpend);
         }
+
     }
     dailySpend = () => {
         this.checkFundsAvailabilityAndTransferIfNeededSpend();
-        this.debitAnAccount(this.dailySpendAccount, this.nonDebtSpendingDaily);
+
+
+        this.debitAnAccount(this.dailySpendAccount, this.budgetsDailySpend);
+
     }
     invest = (fromAccount, toAccount, amount, comment) => {
         if (toAccount.isOpen && fromAccount.isOpen) {
@@ -342,10 +344,6 @@ export default class Simulation extends Component {
         this.contributeTo401k(e.employerRetirementAccount, (grossPayThisPeriod * e.retirementMatchRate), "401(k) contribution from employer");
         e.mostRecentPayday = moment(this.simulationRunDate);
     }
-    transferToDailySpendAccount = () => {
-        var amount = this.roundToCurrency(this.budgetsMonthlySpend);
-        this.transferFunds(this.primaryCheckingAccount, this.dailySpendAccount, amount);
-    }
     tryToInvestExtra = () => {
         var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance -
             this.billsMonthlySpend - this.budgetsMonthlySpend - this.debtMonthlySpend;
@@ -368,6 +366,7 @@ export default class Simulation extends Component {
                 }
             }
         }
+
     }
     /* #endregion */
 
@@ -550,6 +549,7 @@ export default class Simulation extends Component {
         }
     }
     debitAnAccount = (account, amount) => {
+
         account.balance -= amount;
         if (account.balance < 0) {
             throw new Error(`Overdrawn on account ${account.nickName}`);
@@ -578,6 +578,7 @@ export default class Simulation extends Component {
             credits: this.roundToCurrency(credits),
             checkingBal: this.roundToCurrency(this.primaryCheckingAccount.balance),
             savingsBal: this.roundToCurrency(this.primarySavingAccount.balance),
+            spendingBal: this.roundToCurrency(this.dailySpendAccount.balance),
             comment: comment
         }
         this.paySchedule.push(logObject);
@@ -603,6 +604,14 @@ export default class Simulation extends Component {
         return roundVal;
     }
     saveSimData = async () => {
+
+        this.props.onChangeMessage("Saving sim data", "hidden");
+        this.setState({
+            isSaving: true,
+            isSaveComplete: false
+        });
+
+
         var nextYearsPaySchedule = [];
         var twoMonthsFromNow = moment().add(2, 'months');
 
@@ -625,9 +634,11 @@ export default class Simulation extends Component {
             };
             await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
             this.props.onChangeMessage("Simulation data saved", "success");
-
+            this.setState({
+                isSaving: false,
+                isSaveComplete: true
+            });
         } catch (err) {
-            // console.log(`Unable to add simulation: ${err}`);
             this.props.onChangeMessage(`Unable to save simulation data: ${err}`, "danger");
         }
     }
@@ -662,17 +673,20 @@ export default class Simulation extends Component {
             <Fragment>
                 { this.state.isUserAuthenticated ?
                     <div>
-                        {this.state.isLoading ?
+                        {this.state.isLoading &&
                             <p>Simulation running. Please wait.</p>
-                            :
+                        }
+                        {this.state.isSaving && <LoaderSpinner />}
+                        {(this.state.isLoading === false && this.state.isSaving === false && this.state.isSaveComplete === false) &&
                             <div className="field has-addons">
                                 <div className="control">
                                     <button type="submit" onClick={this.handleSaveSimData} className="button is-primary is-medium">
                                         Save simulation results
-                                </button>
+                                    </button>
                                 </div>
                             </div>
                         }
+
                         {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
                         {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
                         {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}

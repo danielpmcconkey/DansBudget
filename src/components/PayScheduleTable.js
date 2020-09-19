@@ -9,9 +9,9 @@ export default class PayScheduleTable extends Component {
         payScheduleStateful: []
     }
     componentDidMount = () => {
-        this.setState({payScheduleStateful: this.props.payScheduleStateful});
+        this.setState({ payScheduleStateful: this.props.payScheduleStateful });
     }
-    
+
     render() {
         return (
             <Fragment>
@@ -26,6 +26,7 @@ export default class PayScheduleTable extends Component {
                                 <th>Credits</th>
                                 <th>Primary checking balance</th>
                                 <th>Primary savings balance</th>
+                                <th>Daily spending account balance</th>
                                 <th>Comments</th>
                             </tr>
                         </thead>
@@ -40,6 +41,7 @@ export default class PayScheduleTable extends Component {
                                     <td><NumberFormat value={item.credits} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
                                     <td><NumberFormat value={item.checkingBal} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
                                     <td><NumberFormat value={item.savingsBal} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
+                                    <td><NumberFormat value={item.spendingBal} displayType={'text'} thousandSeparator={true} prefix={'$'} /></td>
                                     <td>{item.comment}</td>
                                 </tr>
                             )
