@@ -117,10 +117,10 @@ export default class Simulation extends Component {
     bonusDay = (e) => {
         // first find tax and withholdings percent
         var grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
-        if (e.payfrequency === "BIWEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 26;
-        else if (e.payfrequency === "FIRSTANDFIFTHTEENTH") grossPayPerPeriod = e.currentSalaryGrossAnnual / 24;
-        else if (e.payfrequency === "MONTHLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
-        else if (e.payfrequency === "WEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 52;
+        if (e.payFrequency === "BIWEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 26;
+        else if (e.payFrequency === "FIRSTANDFIFTHTEENTH") grossPayPerPeriod = e.currentSalaryGrossAnnual / 24;
+        else if (e.payFrequency === "MONTHLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 12;
+        else if (e.payFrequency === "WEEKLY") grossPayPerPeriod = e.currentSalaryGrossAnnual / 52;
 
         var takeHomePercent = e.currentSalaryNetPerPaycheck / grossPayPerPeriod;
         var bonusGross = e.currentSalaryGrossAnnual * e.bonusTargetRate;
@@ -154,7 +154,7 @@ export default class Simulation extends Component {
     checkForPayDay = () => {
         for (var i = 0; i < this.employers.length; i++) {
             var e = this.employers[i];
-            switch (e.payfrequency) {
+            switch (e.payFrequency) {
                 case "BIWEEKLY":
                     if (this.addDaysWithoutSetting(this.simulationRunDate, -14).isSame(e.mostRecentPayday)) {
                         this.payDay(e);
@@ -336,10 +336,10 @@ export default class Simulation extends Component {
         this.logPaySchedule(this.simulationRunDate, "Pay day", 0, e.currentSalaryNetPerPaycheck, comment);
 
         var grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
-        if (e.payfrequency === "BIWEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 26;
-        else if (e.payfrequency === "FIRSTANDFIFTHTEENTH") grossPayThisPeriod = e.currentSalaryGrossAnnual / 24;
-        else if (e.payfrequency === "MONTHLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
-        else if (e.payfrequency === "WEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 52;
+        if (e.payFrequency === "BIWEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 26;
+        else if (e.payFrequency === "FIRSTANDFIFTHTEENTH") grossPayThisPeriod = e.currentSalaryGrossAnnual / 24;
+        else if (e.payFrequency === "MONTHLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 12;
+        else if (e.payFrequency === "WEEKLY") grossPayThisPeriod = e.currentSalaryGrossAnnual / 52;
         this.contributeTo401k(e.employerRetirementAccount, (grossPayThisPeriod * e.retirementContributionRate), "401(k) contribution from employee");
         this.contributeTo401k(e.employerRetirementAccount, (grossPayThisPeriod * e.retirementMatchRate), "401(k) contribution from employer");
         e.mostRecentPayday = moment(this.simulationRunDate);
@@ -411,6 +411,28 @@ export default class Simulation extends Component {
             this.debtMonthlySpend += a.minPayment;
         }
     }
+    catchUpPaymentDates = () => {
+        // this is used so that the sim doesn't ignore payment dates that are more than
+        // one payment period in the past (likely because all teh bills, etc need to be
+        // updated)
+        var i = 0;
+        var a = {};
+        for (i = 0; i < this.debtAccounts.length; i++) {
+            a = this.debtAccounts[i];
+            a.lastPaidDate = this.trueUpLastPaymentDate(a.lastPaidDate, a.payFrequency);
+        }
+        for (i = 0; i < this.bills.length; i++) {
+            a = this.bills[i];
+            a.lastPaidDate = this.trueUpLastPaymentDate(a.lastPaidDate, a.payFrequency);
+        }
+        for (i = 0; i < this.employers.length; i++) {
+            a = this.employers[i];
+            if (a.mostRecentBonusDate.isBefore(this.addYearsWithoutSetting(this.simulationRunDate, -1))) {
+                a.mostRecentBonusDate = a.mostRecentBonusDate.add(1, 'y');
+            }
+            a.mostRecentPayday = this.trueUpLastPaymentDate(a.mostRecentPayday, a.payFrequency);
+        }
+    }
     fetchAll = async () => {
         this.assetAccounts = await this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
         this.debtAccounts = await this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`);
@@ -470,7 +492,37 @@ export default class Simulation extends Component {
         this.setAllDatesToMidnight();
         this.calculateBurnRates();
         this.assignHouseholdAccounts();
+        this.catchUpPaymentDates();
+    }
+    trueUpLastPaymentDate = (inVal, payFrequency) => {
 
+        if (inVal == null || inVal == undefined) throw new Error(`Error in trueUpLastPaymentDate. inVal is undefined.`);
+        var outVal = moment(inVal);
+
+        switch (payFrequency) {
+            case "BIWEEKLY":
+                if (this.addDaysWithoutSetting(inVal, 14).isBefore(this.simulationRunDate)) {
+                    outVal.add(14, 'd');
+                    // run it again to make sure we've moved up enough
+                    outVal = this.trueUpLastPaymentDate(outVal, payFrequency);
+                }
+                break;
+            case "FIRSTANDFIFTHTEENTH":
+                // nothing to do here
+                break;
+            case "WEEKLY":
+                // nothing to do here
+                break;
+            default:
+            case "MONTHLY":
+                if (this.addMonthsWithoutSetting(inVal, 1).isBefore(this.simulationRunDate)) {
+                    outVal.add(1, 'M');
+                    // run it again to make sure we've moved up enough
+                    outVal = this.trueUpLastPaymentDate(outVal, payFrequency);
+                }
+                break;
+        }
+        return outVal;
     }
     /* #endregion */
 
