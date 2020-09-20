@@ -28,5 +28,13 @@ module.exports = {
             return listOfItems.sort(function (a, b) {
                 if (a.rate < b.rate) return 1; else if (a.rate > b.rate) return -1; else return 0;
             });
+        if (sortParam === "homeValue" && sortAscending === true)
+            return listOfItems.sort(function (a, b) {
+                if (a.homeValue < b.homeValue) return -1; else if (a.homeValue > b.homeValue) return 1; else return 0;
+            });
+        if (sortParam === "homeValue" && sortAscending === false)
+            return listOfItems.sort(function (a, b) {
+                if (a.homeValue < b.homeValue) return 1; else if (a.homeValue > b.homeValue) return -1; else return 0;
+            });
     }
 }

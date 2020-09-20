@@ -52,7 +52,6 @@ export default class AssetAccountAdmin extends Component {
             };
             const headers = {
                 'Content-Type': 'application/json',
-                'household-id': this.state.householdId,
                 'Authorization': `Bearer ${this.token}`
             };
             const res = await axios.post(`${config.api.invokeUrlAssetAccount}/asset-accounts/newVal`, params, { headers: headers });
@@ -81,7 +80,6 @@ export default class AssetAccountAdmin extends Component {
             };
             const headers = {
                 'Content-Type': 'application/json',
-                'household-id': this.state.householdId,
                 'Authorization': `Bearer ${this.token}`
             };
             await axios.patch(`${config.api.invokeUrlAssetAccount}/asset-accounts/${assetAccountId}`, params, { headers: headers });
@@ -110,7 +108,6 @@ export default class AssetAccountAdmin extends Component {
             try {
                 const headers = {
                     'Content-Type': 'application/json',
-                    'household-id': this.state.householdId,
                     'Authorization': `Bearer ${this.token}`
                 };
                 await axios.delete(`${config.api.invokeUrlAssetAccount}/asset-accounts/${assetAccountId}`, { headers: headers });
@@ -134,7 +131,6 @@ export default class AssetAccountAdmin extends Component {
             const res = await axios.get(url, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'household-id': this.state.householdId,
                     'Authorization': `Bearer ${this.token}`
                 },
                 data: null

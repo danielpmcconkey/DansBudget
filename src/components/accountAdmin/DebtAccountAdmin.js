@@ -57,7 +57,6 @@ export default class DebtAccountAdmin extends Component {
       };
       const headers = {
         'Content-Type': 'application/json',
-        'household-id': this.state.householdId,
         'Authorization': `Bearer ${this.token}`
       };
       const res = await axios.post(`${config.api.invokeUrlDebtAccount}/debt-accounts/newVal`, params, { headers: headers });
@@ -88,7 +87,6 @@ export default class DebtAccountAdmin extends Component {
       // console.log(params);
       const headers = {
         'Content-Type': 'application/json',
-        'household-id': this.state.householdId,
         'Authorization': `Bearer ${this.token}`
       };
       await axios.patch(`${config.api.invokeUrlDebtAccount}/debt-accounts/${debtAccountId}`, params, { headers: headers });
@@ -118,7 +116,6 @@ export default class DebtAccountAdmin extends Component {
       try {
         const headers = {
           'Content-Type': 'application/json',
-          'household-id': this.state.householdId,
           'Authorization': `Bearer ${this.token}`
         };
         await axios.delete(`${config.api.invokeUrlDebtAccount}/debt-accounts/${debtAccountId}`, { headers: headers });
@@ -140,8 +137,7 @@ export default class DebtAccountAdmin extends Component {
 
       const requestConfig = {
         headers: {
-          Authorization: `Bearer ${this.token}`,
-          "household-id": this.state.householdId
+          Authorization: `Bearer ${this.token}`
         },
         data: null
       };

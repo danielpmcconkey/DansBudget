@@ -73,16 +73,11 @@ export default class Simulation extends Component {
                     this.calculateNetWorth();
                 }
 
-
+                // done processing for the day
                 this.simulationRunDate.add(1, "days");
-                // firstDayOfSim = false;
             }
 
-
             this.props.onChangeMessage("Simulation successful", "success");
-
-
-
 
         } catch (err) {
             this.props.onChangeMessage(`Error during simulation run: ${err}`, "danger");
@@ -93,7 +88,6 @@ export default class Simulation extends Component {
             this.setState({ isLoading: false });
         }
     }
-
 
     /* #region simulation functions */
     accrueInterest = () => {
@@ -452,7 +446,6 @@ export default class Simulation extends Component {
         const res = await axios.get(url, {
             headers: {
                 'Content-Type': 'application/json',
-                'household-id': this.householdId,
                 'Authorization': `Bearer ${this.token}`
             },
             data: null
@@ -496,7 +489,7 @@ export default class Simulation extends Component {
     }
     trueUpLastPaymentDate = (inVal, payFrequency) => {
 
-        if (inVal == null || inVal == undefined) throw new Error(`Error in trueUpLastPaymentDate. inVal is undefined.`);
+        if (inVal == null || inVal === undefined) throw new Error(`Error in trueUpLastPaymentDate. inVal is undefined.`);
         var outVal = moment(inVal);
 
         switch (payFrequency) {

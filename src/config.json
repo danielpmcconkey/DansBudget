@@ -1,12 +1,12 @@
 {
     "api": {
-        "invokeUrlAssetAccount": "https://w4u1pn8qd5.execute-api.us-east-1.amazonaws.com/prod",
-        "invokeUrlDebtAccount": "https://017iquxfgj.execute-api.us-east-1.amazonaws.com/prod",
-        "invokeUrlBill": "https://izhwq1zeg2.execute-api.us-east-1.amazonaws.com/prod",
-        "invokeUrlProperty": "https://913cq8iz96.execute-api.us-east-1.amazonaws.com/Prod",
-        "invokeUrlBudget": "https://6q5xr3eka4.execute-api.us-east-1.amazonaws.com/Prod",
-        "invokeUrlEmployer": "https://plgp6nbldd.execute-api.us-east-1.amazonaws.com/Prod",
-        "invokeUrlSimulation": "https://v35wgzk3b9.execute-api.us-east-1.amazonaws.com/prod/"
+        "invokeUrlAssetAccount": "https://legv6ggazb.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlDebtAccount": "https://p1rlfdeqg4.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlBill": "https://uwp7meu3t7.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlProperty": "https://3nuc8y64ii.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlBudget": " https://3mo0csw0zf.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlEmployer": "https://urgjnv5o56.execute-api.us-east-1.amazonaws.com/Prod",
+        "invokeUrlSimulation": "https://obfcs2z3a1.execute-api.us-east-1.amazonaws.com/Prod"
     },
     "cognito": {
         "REGION": "us-east-1",

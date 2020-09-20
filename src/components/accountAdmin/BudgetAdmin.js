@@ -42,7 +42,6 @@ export default class BudgetAdmin extends Component {
       };
       const headers = {
         'Content-Type': 'application/json',
-        'household-id': this.state.householdId,
         'Authorization': `Bearer ${this.token}`
       };
       const res = await axios.post(`${config.api.invokeUrlBudget}/budgets/newVal`, params, { headers: headers });
@@ -68,7 +67,6 @@ export default class BudgetAdmin extends Component {
       //console.log(params);
       const headers = {
         'Content-Type': 'application/json',
-        'household-id': this.state.householdId,
         'Authorization': `Bearer ${this.token}`
       };
       await axios.patch(`${config.api.invokeUrlBudget}/budgets/${budgetId}`, params, { headers: headers });
@@ -95,7 +93,6 @@ export default class BudgetAdmin extends Component {
       try {
         const headers = {
           'Content-Type': 'application/json',
-          'household-id': this.state.householdId,
           'Authorization': `Bearer ${this.token}`
         };
         await axios.delete(`${config.api.invokeUrlBudget}/budgets/${budgetId}`, { headers: headers });
@@ -119,8 +116,7 @@ export default class BudgetAdmin extends Component {
 
       const requestConfig = {
         headers: {
-          Authorization: `Bearer ${this.token}`,
-          "household-id": this.state.householdId
+          Authorization: `Bearer ${this.token}`
         },
         data: null
       };
