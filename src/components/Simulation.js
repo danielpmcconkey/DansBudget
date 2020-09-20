@@ -7,7 +7,7 @@ import WorthScheduleTable from './WorthScheduleTable';
 const config = require('../config.json');
 const moment = require('moment');
 const multiSort = require('./sharedFunctions/multiSort');
-//const getMostRecentSimFromDBReturn = require('../sharedFunctions/getMostRecentSimFromDBReturn');
+
 
 
 export default class Simulation extends Component {

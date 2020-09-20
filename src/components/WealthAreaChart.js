@@ -3,6 +3,7 @@ import axios from "axios";
 import ResizableBox from './ResizableBox';
 import { Chart } from "react-charts";
 const config = require('../config.json');
+const getMostRecentSimFromDBReturn = require('./sharedFunctions/getMostRecentSimFromDBReturn');
 
 
 
@@ -67,13 +68,7 @@ export default class WealthAreaChart extends Component {
         ];
         this.setState({ data: placeholder3 });
     }
-    getMostRecentDataFromDBReturn = (dbReturn) => {
-        var latestReport = dbReturn[0];
-        for (var i = 0; i < dbReturn.length; i++) {
-            if (dbReturn[i].runTime > latestReport.runTime) latestReport = dbReturn[i];
-        }
-        return latestReport;
-    }
+
     fetchData = async () => {
         try {
 
@@ -93,7 +88,7 @@ export default class WealthAreaChart extends Component {
             var value = 0;
 
             if (res.data !== undefined) {
-                const worthSchedule = this.getMostRecentDataFromDBReturn(res.data).worthSchedule;
+                const worthSchedule = getMostRecentSimFromDBReturn.getMostRecentSimFromDBReturn(res.data).worthSchedule;
                 var dbData = [];
                 // high rate debt
                 var highRateDebtData = [];

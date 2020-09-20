@@ -2,6 +2,7 @@ import React, { Component, Fragment } from 'react';
 import axios from "axios";
 const config = require('../config.json');
 const moment = require('moment');
+const getMostRecentSimFromDBReturn = require('./sharedFunctions/getMostRecentSimFromDBReturn');
 
 
 
@@ -16,13 +17,6 @@ export default class UpcomingItems extends Component {
     }
     allRows = [];
 
-    getMostRecentDataFromDBReturn = (dbReturn) => {
-        var latestReport = dbReturn[0];
-        for (var i = 0; i < dbReturn.length; i++) {
-            if (dbReturn[i].runTime > latestReport.runTime) latestReport = dbReturn[i];
-        }
-        return latestReport;
-    }
     formatMoney = (number) => {
         var decPlaces = 2;
         var decSep = ".";
@@ -49,7 +43,7 @@ export default class UpcomingItems extends Component {
                 data: null
             });
             if (res.data !== undefined) {
-                const paySchedule = this.getMostRecentDataFromDBReturn(res.data).paySchedule;
+                const paySchedule = getMostRecentSimFromDBReturn.getMostRecentSimFromDBReturn(res.data).paySchedule;
 
 
                 // set up time bindings
