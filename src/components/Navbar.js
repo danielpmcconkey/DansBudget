@@ -67,7 +67,11 @@ export default class Navbar extends Component {
                                 Manage Properties
                             </a>
                         )}
-
+                        {this.props.auth.isAuthenticated && (
+                            <a href="/employers" className="navbar-item">
+                                Manage Employers
+                            </a>
+                        )}
                         {this.props.auth.isAuthenticated && (
                             <a href="/Simulation" className="navbar-item">
                                 Run simulation

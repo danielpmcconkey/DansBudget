@@ -8,6 +8,7 @@ import DebtAccountAdmin from './components/accountAdmin/DebtAccountAdmin';
 import BillAdmin from './components/accountAdmin/BillAdmin';
 import BudgetAdmin from './components/accountAdmin/BudgetAdmin';
 import PropertyAdmin from './components/accountAdmin/PropertyAdmin';
+import EmployerAdmin from './components/accountAdmin/EmployerAdmin';
 import Simulation from './components/Simulation';
 import LogIn from './components/auth/LogIn';
 import LogOut from './components/auth/LogOut';
@@ -109,6 +110,7 @@ class App extends Component {
               <Route exact path="/bills" render={(props) => <BillAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/budgets" render={(props) => <BudgetAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/properties" render={(props) => <PropertyAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/employers" render={(props) => <EmployerAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/simulation" render={(props) => <Simulation {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/login" render={(props) => <LogIn {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/logout" render={(props) => <LogOut {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
