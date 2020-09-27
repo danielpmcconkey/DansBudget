@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import './App.css';
-import Navbar from './components/Navbar';
+import Navigation from './components/Navbar';
 import Home from './components/Home';
 import AssetAccountAdmin from './components/accountAdmin/AssetAccountAdmin';
 import DebtAccountAdmin from './components/accountAdmin/DebtAccountAdmin';
@@ -10,6 +10,7 @@ import BudgetAdmin from './components/accountAdmin/BudgetAdmin';
 import PropertyAdmin from './components/accountAdmin/PropertyAdmin';
 import EmployerAdmin from './components/accountAdmin/EmployerAdmin';
 import Simulation from './components/Simulation';
+import Test from './components/Test';
 import LogIn from './components/auth/LogIn';
 import LogOut from './components/auth/LogOut';
 import Register from './components/auth/Register';
@@ -22,7 +23,7 @@ import Footer from './components/Footer';
 import { Auth } from 'aws-amplify';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
-import ResultsView from './components/ResultsView';
+import AlertDismissible from './components/AlertDismissable';
 
 library.add(faEdit);
 
@@ -32,8 +33,10 @@ class App extends Component {
     isAuthenticated: false,
     isAuthenticating: true,
     user: null,
+    ResultsViewHeader: "Empty",
     ResultsViewMessage: "No current message to display",
-    ResultsViewMode: "hidden" // hidden, danger, success, warning
+    ResultsViewMode: "light", // 'primary','secondary','success', 'danger', 'warning', 'info', 'light', 'dark',
+    shouldAlertShow: false
   }
 
   setAuthStatus = authenticated => {
@@ -59,8 +62,10 @@ class App extends Component {
         this.setAuthStatus(false);
         this.setUser(null);
         this.setState({
-          ResultsViewMessage: "You have been automatically logged out.",
-          ResultsViewMode: "warning"
+          ResultsViewHeader: "Logged out",
+          ResultsViewMessage: "You have been automatically logged out due to inactivity.",
+          ResultsViewMode: "info",
+          shouldAlertShow: true
         });
 
       } else {
@@ -76,8 +81,12 @@ class App extends Component {
         // swallow error
       }
       else {
-        this.setState({ ResultsViewMessage: `An error has occurred: ${error}` });
-        this.setState({ ResultsViewMode: "danger" });
+        this.setState({
+          ResultsViewMessage: `An error has occurred: ${error}`,
+          ResultsViewMode: "danger",
+          ResultsViewHeader: "Error",
+          shouldAlertShow: true
+        });
       }
     }
     this.setState({ isAuthenticating: false });
@@ -92,17 +101,28 @@ class App extends Component {
       setAuthStatus: this.setAuthStatus,
       setUser: this.setUser
     }
-    const onChangeMessage = (ResultsViewMessage, ResultsViewMode) => {
-      this.setState({ ResultsViewMessage: ResultsViewMessage });
-      this.setState({ ResultsViewMode: ResultsViewMode });
+    const onChangeMessage = (ResultsViewMessage, ResultsViewMode, ResultsViewHeader, shouldAlertShow) => {
+      this.setState({
+        ResultsViewMessage: ResultsViewMessage,
+        ResultsViewMode: ResultsViewMode,
+        ResultsViewHeader: ResultsViewHeader,
+        shouldAlertShow: shouldAlertShow
+      });
     }
     return (
       !this.state.isAuthenticating &&
       <div className="App">
         <Router>
           <div>
-            <Navbar auth={authProps} />
-            <ResultsView ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} />
+            <Navigation auth={authProps} />
+            {/* <ResultsView ResultsViewMessage={this.state.ResultsViewMessage} ResultsViewMode={this.state.ResultsViewMode} /> */}
+            <AlertDismissible
+              ResultsViewHeader={this.state.ResultsViewHeader}
+              ResultsViewMessage={this.state.ResultsViewMessage}
+              ResultsViewMode={this.state.ResultsViewMode}
+              shouldAlertShow={this.state.shouldAlertShow}
+              onChangeMessage={onChangeMessage}
+            />
             <Switch>
               <Route exact path="/" render={(props) => <Home {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/assetAccounts" render={(props) => <AssetAccountAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
@@ -112,6 +132,7 @@ class App extends Component {
               <Route exact path="/properties" render={(props) => <PropertyAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/employers" render={(props) => <EmployerAdmin {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/simulation" render={(props) => <Simulation {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
+              <Route exact path="/Test" render={(props) => <Test {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/login" render={(props) => <LogIn {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/logout" render={(props) => <LogOut {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />
               <Route exact path="/register" render={(props) => <Register {...props} auth={authProps} onChangeMessage={onChangeMessage} />} />

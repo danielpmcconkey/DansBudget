@@ -1,6 +1,6 @@
-import React, { Component, Fragment } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
+import { Card, Nav, Form, Button } from 'react-bootstrap';
 
 export default class AssetAccountAdmin extends Component {
 
@@ -32,67 +32,78 @@ export default class AssetAccountAdmin extends Component {
 
     render() {
         return (
-            <div color="info" className="tile is-child box notification has-background-success has-text-light">
-                {
-                    this.props.isAdmin &&
-                    <Fragment>
-                        <a href="/" onClick={this.handleAssetAccountEdit} className="account-edit-icon">
-                            <FontAwesomeIcon icon="edit" />
-                        </a>
-                        <button onClick={event => this.props.handleDeleteAssetAccount(this.props.assetAccountId, event)} className="delete"></button>
-                    </Fragment>
-                }
+            <>
                 {
                     this.state.isEditMode
-                        ? <div>
-                            <p>Edit nickname</p>
-                            <input
-                                className="input is-medium"
+                        ?
 
-                                type="text"
-                                placeholder="Enter name"
-                                value={this.state.updatedNickName}
-                                onChange={this.onNickNameChange}
-                            />
-                            <p>Edit balance</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter balance"
-                                value={this.state.updatedBalance}
-                                onChange={this.onBalanceChange}
-                            />
-                            <p>Edit rate</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter rate"
-                                value={this.state.updatedRate}
-                                onChange={this.onRateChange}
-                            />
-                            <p>Is this a tax advantaged account?</p>
-                            <select
-                                className="select is-medium"
-                                value={this.state.updatedIsTaxAdvantagedy}
-                                onChange={this.onIsTaxAdvantagedChange}>
-                                <option value="NO">No</option>
-                                <option value="YES">Yes</option>
-                            </select>
-                            <p className="assetAccount-id">id: {this.props.assetAccountId}</p>
-                            <button type="submit"
-                                className="button is-info is-small"
-                                onClick={this.handleEditSave}
-                            >save</button>
-                        </div>
-                        : <div>
-                            <p className="account-title">{this.props.nickName}</p>
-                            <p className="account-title">balance: <NumberFormat value={this.props.balance} displayType={'text'} thousandSeparator={true} prefix={'$'} /></p>
-                            <p className="account-title">estimated rate of return: {this.props.rate}</p>
-                            <p className="account-title">tax advantaged?: {this.props.isTaxAdvantaged}</p>
-                            <p className="account-id">account ID: {this.props.assetAccountId}</p>
-                        </div>
+                        <Card border="primary" className="account-card account-card-edit">
+                            <Card.Body>
+                                <Card.Header><h3 className="account-card-header">Edit this account</h3></Card.Header>
+                                <Card.Text>
+
+                                    <span className="account-card-form-label">Nickname:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter name"
+                                        value={this.state.updatedNickName}
+                                        onChange={this.onNickNameChange}
+                                    />
+                                    <span className="account-card-form-label">Current balance:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control size="lg" type="text"
+                                        placeholder="Enter balance"
+                                        value={this.state.updatedBalance}
+                                        onChange={this.onBalanceChange}
+                                    />
+                                    <span className="account-card-form-label">Interest rate:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control size="lg" type="text"
+                                        placeholder="Enter rate"
+                                        value={this.state.updatedRate}
+                                        onChange={this.onRateChange}
+                                    />
+                                    <span className="account-card-form-label">Is this a tax advantaged account?</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control size="lg" as="select"
+                                        value={this.state.updatedIsTaxAdvantaged}
+                                        onChange={this.onIsTaxAdvantagedChange}
+                                    >
+                                        <option value="NO">No</option>
+                                        <option value="YES">Yes</option>
+                                    </Form.Control>
+
+
+                                    <Button
+                                        className="orangeButton"
+                                        style={{ marginTop: '1em' }}
+                                        variant="primary"
+                                        onClick={this.handleEditSave}>
+                                        save
+                                    </Button>
+
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
+                        : <Card border="primary" className="account-card">
+                            <Card.Body>
+                                <Card.Header>
+                                    <Nav variant="pills" defaultActiveKey="#first">
+                                        <Nav.Item>
+                                            <Nav.Link href="#first" onClick={this.handleAssetAccountEdit}>Edit</Nav.Link>
+                                        </Nav.Item>
+                                        <Nav.Item>
+                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteAssetAccount(this.props.assetAccountId, event)}>Delete</Nav.Link>
+                                        </Nav.Item>
+                                    </Nav>
+                                </Card.Header>
+                                <Card.Title>{this.props.nickName}</Card.Title>
+                                <Card.Text>
+                                    <span className="card-text card-text-emphasis">balance: <NumberFormat value={this.props.balance} displayType={'text'} thousandSeparator={true} prefix={'$'} /></span><br />
+                                    <span className="card-text">estimated rate of return: {this.props.rate}</span><br />
+                                    <span className="card-text">tax advantaged?: {this.props.isTaxAdvantaged}</span><br />
+                                    <span className="card-text">account ID: {this.props.assetAccountId}</span><br />
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
                 }
-            </div>
+            </>
         )
     }
 }

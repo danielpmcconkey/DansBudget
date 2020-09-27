@@ -1,9 +1,10 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import axios from "axios";
 import WealthAreaChart from './WealthAreaChart';
 import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
+import { Alert, Button } from 'react-bootstrap';
 const config = require('../config.json');
 const moment = require('moment');
 const multiSort = require('./sharedFunctions/multiSort');
@@ -678,7 +679,7 @@ export default class Simulation extends Component {
                 'Authorization': `Bearer ${this.token}`
             };
             await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
-            this.props.onChangeMessage("Simulation data saved", "success");
+            this.props.onChangeMessage("Simulation data saved", "success", "Success", true);
             this.setState({
                 isSaving: false,
                 isSaveComplete: true
@@ -715,21 +716,31 @@ export default class Simulation extends Component {
 
 
         return (
-            <Fragment>
+            <>
                 { this.state.isUserAuthenticated ?
                     <div>
                         {this.state.isLoading &&
-                            <p>Simulation running. Please wait.</p>
+                            <Alert variant="info">
+                                <Alert.Heading>Please wait</Alert.Heading>
+                                <p>Your simulation is running. This may take a few seconds.</p>
+                            </Alert>
                         }
                         {this.state.isSaving && <LoaderSpinner />}
                         {(this.state.isLoading === false && this.state.isSaving === false && this.state.isSaveComplete === false) &&
-                            <div className="field has-addons">
-                                <div className="control">
-                                    <button type="submit" onClick={this.handleSaveSimData} className="button is-primary is-medium">
-                                        Save simulation results
-                                    </button>
-                                </div>
-                            </div>
+                            <Alert variant="info">
+                                <Alert.Heading>Finished</Alert.Heading>
+                                <p>Your simulation is complete.</p>
+                                <Button
+                                    onClick={this.handleSaveSimData}
+                                    className="orangeButton"
+                                    type="submit"
+                                    style={{ marginTop: '1em' }}
+                                    variant="primary">
+                                    Save simulation results
+                                </Button>
+                            </Alert>
+
+
                         }
 
                         {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
@@ -739,7 +750,7 @@ export default class Simulation extends Component {
                     : <div><p>You must log in to view this content</p></div>
                 }
 
-            </Fragment>
+            </>
         );
     }
     /* #endregion */

@@ -1,5 +1,6 @@
-import React, { Component, Fragment } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { Component } from 'react';
+import NumberFormat from 'react-number-format';
+import { Card, Nav, Form, Button } from 'react-bootstrap';
 
 export default class EmployerAdmin extends Component {
 
@@ -59,122 +60,119 @@ export default class EmployerAdmin extends Component {
 
     render() {
         return (
-            <div color="info" className="tile is-child box notification has-background-success has-text-light">
-                {
-                    this.props.isAdmin &&
-                    <Fragment>
-                        <a href="/" onClick={this.handleEmployerEdit} className="account-edit-icon">
-                            <FontAwesomeIcon icon="edit" />
-                        </a>
-                        <button onClick={event => this.props.handleDeleteEmployer(this.props.employerId, event)} className="delete"></button>
-                    </Fragment>
-                }
+            <>
                 {
                     this.state.isEditMode
-                        ? <div>
-                            <p>Edit nickname</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter name"
-                                value={this.state.updatedNickName}
-                                onChange={this.onNickNameChange}
-                            />
-                            <p>Edit current annual gross salary</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter current annual gross salary"
-                                value={this.state.updatedCurrentSalaryGrossAnnual}
-                                onChange={this.onCurrentSalaryGrossAnnualChange}
-                            />
-                            <p>Edit payment frequency</p>
-                            <select
-                                className="select is-medium"
-                                value={this.state.updatedPayFrequency}
-                                onChange={this.onPayFrequencyChange}>
-                                <option value="MONTHLY">Monthly</option>
-                                <option value="WEEKLY">Weekly</option>
-                                <option value="BIWEEKLY">Every other week</option>
-                                <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
-                            </select>
-                            <p>Edit bonus target rate</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter bonus target rate"
-                                value={this.state.updatedBonusTargetRate}
-                                onChange={this.onBonusTargetRateChange}
-                            />
-                            <p>Edit net payment per paycheck</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter net payment per paycheck"
-                                value={this.state.updatedCurrentSalaryNetPerPaycheck}
-                                onChange={this.onCurrentSalaryNetPerPaycheckChange}
-                            />
-                            <p>Edit employer retirement account ID</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter employer retirement account ID"
-                                value={this.state.updatedEmployerRetirementAccount}
-                                onChange={this.onNEmployerRetirementAccountChange}
-                            />
-                            <p>Edit most recent bonus date</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="YYYY-MM-DD"
-                                value={this.state.updatedMostRecentBonusDate}
-                                onChange={this.onMostRecentBonusDateChange}
-                            />
-                            <p>Edit most recent pay day</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="YYYY-MM-DD"
-                                value={this.state.updatedMostRecentPayday}
-                                onChange={this.onMostRecentPaydayChange}
-                            />
-                            <p>Edit retirement contribution percent</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter retirement contribution percent"
-                                value={this.state.updatedRetirementContributionRate}
-                                onChange={this.onRetirementContributionRateChange}
-                            />
-                            <p>Edit retirement match rate</p>
-                            <input
-                                className="input is-medium"
-                                type="text"
-                                placeholder="Enter retirement match rate"
-                                value={this.state.updatedRetirementMatchRate}
-                                onChange={this.onRetirementMatchRateChange}
-                            />
-                            <p className="account-id">id: {this.props.employerId}</p>
-                            <button type="submit"
-                                className="button is-info is-small"
-                                onClick={this.handleEditSave}
-                            >save</button>
-                        </div>
-                        : <div>
-                            <p className="account-title">{this.props.nickName}</p>
-                            <p className="account-title">annual gross salary: {this.props.currentSalaryGrossAnnual}</p>
-                            <p className="account-id">pay frequency: {this.props.payFrequency}</p>
-                            <p className="account-id">bonus target rate: {this.props.bonusTargetRate}</p>
-                            <p className="account-id">net per paycheck: {this.props.currentSalaryNetPerPaycheck}</p>
-                            <p className="account-id">retirement account: {this.props.employerRetirementAccount}</p>
-                            <p className="account-id">last bonus: {this.props.mostRecentBonusDate}</p>
-                            <p className="account-id">last pay day: {this.props.mostRecentPayday}</p>
-                            <p className="account-id">retirement contribution rate: {this.props.retirementContributionRate}</p>
-                            <p className="account-id">retirement match rate: {this.props.retirementMatchRate}</p>
-                            <p className="account-id">ID: {this.props.employerId}</p>
-                        </div>
+                        ?
+
+                        <Card border="primary" className="account-card account-card-edit">
+                            <Card.Body>
+                                <Card.Header><h3 className="account-card-header">Edit this account</h3></Card.Header>
+                                <Card.Text>
+
+                                    <span className="account-card-form-label">Nickname:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter name"
+                                        value={this.state.updatedNickName}
+                                        onChange={this.onNickNameChange}
+                                    />
+                                    <span className="account-card-form-label">Current annual gross salary:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter current annual gross salary"
+                                        value={this.state.updatedCurrentSalaryGrossAnnual}
+                                        onChange={this.onCurrentSalaryGrossAnnualChange}
+                                    />
+                                    <span className="account-card-form-label">Payment frequency:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control size="lg" as="select"
+                                        value={this.state.updatedPayFrequency}
+                                        onChange={this.onPayFrequencyChange}>
+                                        <option value="MONTHLY">Monthly</option>
+                                        <option value="WEEKLY">Weekly</option>
+                                        <option value="BIWEEKLY">Every other week</option>
+                                        <option value="FIRSTANDFIFTHTEENTH">1st and 15th of the month</option>
+                                    </Form.Control>
+                                    <span className="account-card-form-label">Bonus target rate:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter bonus target rate"
+                                        value={this.state.updatedBonusTargetRate}
+                                        onChange={this.onBonusTargetRateChange}
+                                    />
+                                    <span className="account-card-form-label">Net payment per paycheck:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter net payment per paycheck"
+                                        value={this.state.updatedCurrentSalaryNetPerPaycheck}
+                                        onChange={this.onCurrentSalaryNetPerPaycheckChange}
+                                    />
+                                    <span className="account-card-form-label">Employer retirement account ID:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter employer retirement account ID"
+                                        value={this.state.updatedEmployerRetirementAccount}
+                                        onChange={this.onNEmployerRetirementAccountChange}
+                                    />
+                                    <span className="account-card-form-label">Most recent bonus date:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="YYYY-MM-DD"
+                                        value={this.state.updatedMostRecentBonusDate}
+                                        onChange={this.onMostRecentBonusDateChange}
+                                    />
+                                    <span className="account-card-form-label">Most recent pay day:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="YYYY-MM-DD"
+                                        value={this.state.updatedMostRecentPayday}
+                                        onChange={this.onMostRecentPaydayChange}
+                                    />
+                                    <span className="account-card-form-label">Retirement contribution percent</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter retirement contribution percent"
+                                        value={this.state.updatedRetirementContributionRate}
+                                        onChange={this.onRetirementContributionRateChange}
+                                    />
+                                    <span className="account-card-form-label">Retirement match rate:</span><br style={{ marginTop: '1em' }} />
+                                    <Form.Control type="text"
+                                        placeholder="Enter retirement match rate"
+                                        value={this.state.updatedRetirementMatchRate}
+                                        onChange={this.onRetirementMatchRateChange}
+                                    />
+
+                                    <Button
+                                        className="orangeButton"
+                                        style={{ marginTop: '1em' }}
+                                        variant="primary"
+                                        onClick={this.handleEditSave}>
+                                        save
+                                    </Button>
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
+                        : <Card border="primary" className="account-card">
+                            <Card.Body>
+                                <Card.Header>
+                                    <Nav variant="pills" defaultActiveKey="#first">
+                                        <Nav.Item>
+                                            <Nav.Link href="#first" onClick={this.handleEmployerEdit}>Edit</Nav.Link>
+                                        </Nav.Item>
+                                        <Nav.Item>
+                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteEmployer(this.props.assetAccountId, event)}>Delete</Nav.Link>
+                                        </Nav.Item>
+                                    </Nav>
+                                </Card.Header>
+                                <Card.Title>{this.props.nickName}</Card.Title>
+                                <Card.Text>
+                                    <span className="card-text card-text-emphasis">annual gross salary: <NumberFormat value={this.props.currentSalaryGrossAnnual} displayType={'text'} thousandSeparator={true} prefix={'$'} /></span><br />
+                                    <span className="card-text">pay frequency: {this.props.payFrequency}</span><br />
+                                    <span className="card-text">bonus target rate: {this.props.bonusTargetRate}</span><br />
+                                    <span className="card-text">net per paycheck: <NumberFormat value={this.props.currentSalaryNetPerPaycheck} displayType={'text'} thousandSeparator={true} prefix={'$'} /></span><br />
+                                    <span className="card-text">retirement account: {this.props.employerRetirementAccount}</span><br />
+                                    <span className="card-text">last bonus: {this.props.mostRecentBonusDate}</span><br />
+                                    <span className="card-text">last pay day: {this.props.mostRecentPayday}</span><br />
+                                    <span className="card-text">retirement contribution rate: {this.props.retirementContributionRate}</span><br />
+                                    <span className="card-text">retirement match rate: {this.props.retirementMatchRate}</span><br />
+                                    <span className="card-text">ID: {this.props.employerId}</span><br />
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
                 }
-            </div>
+            </>
         )
     }
 }
