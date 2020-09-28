@@ -35,6 +35,7 @@ body {
 }
 
 .buttons { margin-left:1em;} */
+.hero { background-color: #ffe0b2 !important; }
 .navbar { background-color: #fff !important ; border-bottom:solid 2pt #e65100;}
 .orangeButton { background-color: #ff6600ff !important; border-color:#e65100 !important}
 .orangeButtonOutline { background-color: #fff !important; border-color:#e65100 !important; color:#e65100 !important}

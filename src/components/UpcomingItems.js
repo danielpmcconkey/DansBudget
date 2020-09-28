@@ -1,5 +1,6 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import axios from "axios";
+import { Jumbotron, Container, Table } from 'react-bootstrap';
 const config = require('../config.json');
 const moment = require('moment');
 const getMostRecentSimFromDBReturn = require('./sharedFunctions/getMostRecentSimFromDBReturn');
@@ -127,33 +128,35 @@ export default class UpcomingItems extends Component {
 
     render() {
         return (
-            <Fragment>
-                <p className="has-text-centered">Recent and Upcoming Activities</p>
-                {this.state.isUserAuthenticated ?
-                    <div className="table-container">
-                        <table className="table">
-                            <thead className="thead">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Activity</th>
-                                </tr>
-                            </thead>
-                            <tbody>{this.state.allRowsStateful.map(function (item, key) {
-
-                                return (
-                                    <tr key={key} className={item.cssClassName}>
-                                        <td>{item.activityDate.format("ddd MMM D, YYYY")}</td>
-                                        <td>{item.humanReadableMessage}</td>
+            <Jumbotron>
+                <Container className="hero-body">
+                    <h1 className="has-text-centered">Recent and upcoming activities</h1>
+                    {this.state.isUserAuthenticated ?
+                        <div className="table-container">
+                            <Table responsive>
+                                <thead className="thead">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Activity</th>
                                     </tr>
-                                )
+                                </thead>
+                                <tbody>{this.state.allRowsStateful.map(function (item, key) {
 
-                            })}</tbody>
-                        </table>
+                                    return (
+                                        <tr key={key} className={item.cssClassName}>
+                                            <td>{item.activityDate.format("ddd MMM D, YYYY")}</td>
+                                            <td>{item.humanReadableMessage}</td>
+                                        </tr>
+                                    )
 
-                    </div>
-                    : <div><p>You must log in to view this content</p></div>
-                }
-            </Fragment>
+                                })}</tbody>
+                            </Table>
+
+                        </div>
+                        : <div><p>You must log in to view this content</p></div>
+                    }
+                </Container>
+            </Jumbotron>
         )
     }
 }

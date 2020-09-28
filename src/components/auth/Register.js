@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import FormErrors from "../FormErrors";
-import Validate from "../utility/FormValidation";
+//import Validate from "../utility/FormValidation";
 import { Auth } from "aws-amplify";
+import { Form, Button, Nav, Container } from 'react-bootstrap';
 
 class Register extends Component {
     state = {
@@ -9,147 +10,142 @@ class Register extends Component {
         email: "",
         password: "",
         confirmpassword: "",
-        errors: {
-            cognito: null,
-            blankfield: false,
-            passwordmatch: false
+        errors: []
+    }
+
+    validateFormState = () => {
+        var isValid = true;
+        if (this.state.username === "") {
+            this.setState({
+                errors: this.state.errors.concat('User name field is blank.')
+            });
+            isValid = false;
         }
+        if (this.state.email === "") {
+            this.setState({
+                errors: this.state.errors.concat('Email field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.password === "") {
+            this.setState({
+                errors: this.state.errors.concat('Password field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.confirmpassword === "") {
+            this.setState({
+                errors: this.state.errors.concat('Password confirmation field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.password !== this.state.confirmpassword) {
+            this.setState({
+                errors: this.state.errors.concat('Password fields do not match.')
+            });
+            isValid = false;
+        }
+        return isValid;
     }
-
-    clearErrorState = () => {
-        this.setState({
-            errors: {
-                cognito: null,
-                blankfield: false,
-                passwordmatch: false
-            }
-        });
-    }
-
     handleSubmit = async event => {
         event.preventDefault();
 
         // Form validation
-        this.clearErrorState();
-        const error = Validate(event, this.state);
-        if (error) {
-            this.setState({
-                errors: { ...this.state.errors, ...error }
-            });
+        // clear error state
+        this.setState({ errors: [] });
+        const isValid = this.validateFormState();
+        if (isValid) {
+            // AWS Cognito integration here
+            const { username, email, password } = this.state;
+            try {
+                const signUpResponse = await Auth.signUp({
+                    username,
+                    password,
+                    attributes: {
+                        email: email
+                    }
+                });
+                // this.props.onChangeMessage(signUpResponse, "success", "Registration success", true);
+                this.props.history.push("/welcome");
+            } catch (err) {
+                this.props.onChangeMessage(`Error message: ${err.message}`, "danger", "Error submitting registration form", true);
+            }
         }
-
-        // AWS Cognito integration here
-        const { username, email, password } = this.state;
-        try {
-            const signUpResponse = await Auth.signUp({
-                username,
-                password,
-                attributes: {
-                    email: email
-                }
-            });
-            //console.log(signUpResponse);
-            this.props.onChangeMessage(signUpResponse, "success");
-            this.props.history.push("/welcome");
-        } catch (error) {
-            this.setState({
-                errors: {
-                    ...this.state.errors,
-                    cognito: error
-                }
-            })
+        else {
+            var err = "";
+            for (var i = 0; i < this.state.errors.length; i++) {
+                err += this.state.errors[i];
+            }
+            this.props.onChangeMessage(`Error message(s): ${err}`, "danger", "Error validating registration form", true);
         }
     };
 
-    onInputChange = event => {
-        this.setState({
-            [event.target.id]: event.target.value
-        });
-        document.getElementById(event.target.id).classList.remove("is-danger");
-    }
+    onUserNameChange = event => this.setState({ username: event.target.value });
+    onEmailChange = event => this.setState({ email: event.target.value });
+    onPasswordChange = event => this.setState({ password: event.target.value });
+    onConfirmpasswordChange = event => this.setState({ confirmpassword: event.target.value });
 
     render() {
         return (
-            <section className="section auth">
-                <div className="container">
-                    <h1>Register</h1>
-                    <FormErrors formerrors={this.state.errors} />
+            <Container className="new-account-form">
+                <h1>Register</h1>
+                <FormErrors formerrors={this.state.errors} />
 
-                    <form onSubmit={this.handleSubmit}>
-                        <div className="field">
-                            <p className="control">
-                                <input
-                                    className="input"
-                                    type="text"
-                                    id="username"
-                                    aria-describedby="userNameHelp"
-                                    placeholder="Enter username"
-                                    value={this.state.username}
-                                    onChange={this.onInputChange}
-                                />
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left has-icons-right">
-                                <input
-                                    className="input"
-                                    type="email"
-                                    id="email"
-                                    aria-describedby="emailHelp"
-                                    placeholder="Enter email"
-                                    value={this.state.email}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-envelope"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="password"
-                                    id="password"
-                                    placeholder="Password"
-                                    value={this.state.password}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="password"
-                                    id="confirmpassword"
-                                    placeholder="Confirm password"
-                                    value={this.state.confirmpassword}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <a href="/forgotpassword">Forgot password?</a>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <button className="button is-success">
+                <Form onSubmit={this.handleSubmit}>
+                    <p className="account-card-form-label">User name:</p>
+                    <Form.Control type="text"
+                        placeholder="Enter username"
+                        value={this.state.username}
+                        onChange={this.onUserNameChange}
+                        id="username"
+                    />
+                    <p className="account-card-form-label">Email:</p>
+                    <Form.Control type="text"
+                        placeholder="Enter email"
+                        value={this.state.email}
+                        onChange={this.onEmailChange}
+                        id="email"
+                    />
+                    <p className="account-card-form-label">Password:</p>
+                    <Form.Control type="password"
+                        placeholder="Enter password"
+                        value={this.state.password}
+                        onChange={this.onPasswordChange}
+                        id="password"
+                    />
+                    <p className="account-card-form-label">Confirm password:</p>
+                    <Form.Control type="password"
+                        placeholder="Confirm password"
+                        value={this.state.confirmpassword}
+                        onChange={this.onConfirmpasswordChange}
+                        id="confirmpassword"
+                    />
+
+                    <Form.Group>
+                        <Nav variant="pills" defaultActiveKey="#first" style={{ marginTop: '1em' }}>
+                            <Nav.Item style={{ marginRight: '1em' }}>
+                                <Nav.Link className="orangeButton" href="#first" onClick={this.handleSubmit}>Register</Nav.Link>
+                                {/* <Button
+                                    className="orangeButton"
+                                    type="submit"
+                                    style={{ marginTop: '1em' }}
+                                    variant="primary">
                                     Register
-                </button>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                            </Button> */}
+                            </Nav.Item>
+                            <Nav.Item>
+                                <Nav.Link className="orangeButtonOutline" href="#link" href="/forgotpassword">Forgot password?</Nav.Link>
+                                {/* <Button className="orangeButtonOutline" href="/forgotpassword">Forgot password?</Button> */}
+                            </Nav.Item>
+                        </Nav>
+
+
+
+
+                    </Form.Group>
+                </Form>
+            </Container>
+
         );
     }
 }
