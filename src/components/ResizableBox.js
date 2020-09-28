@@ -5,43 +5,29 @@ import "react-resizable/css/styles.css";
 
 export default function ResizableBox({
     children,
-    width = 500,
-    height = 300,
-    resizable = true,
     style = {},
     className
 }) {
     return (
-        <div>
-            {resizable ? (
-                <ReactResizableBox
-                    width={width}
-                    height={height}
-                    handleSize={[50, 50]}
+        <>
+
+            <ReactResizableBox
+                width={700}
+                height={350}
+                handleSize={[50, 50]}
+            >
+                <div
+                    style={{
+                        ...style,
+                        width: "100%",
+                        height: "100%"
+                    }}
+                    className={className}
                 >
-                    <div
-                        style={{
-                            ...style,
-                            width: "100%",
-                            height: "100%"
-                        }}
-                        className={className}
-                    >
-                        {children}
-                    </div>
-                </ReactResizableBox>
-            ) : (
-                    <div
-                        style={{
-                            width: `${width}px`,
-                            height: `${height}px`,
-                            ...style
-                        }}
-                        className={className}
-                    >
-                        {children}
-                    </div>
-                )}
-        </div>
+                    {children}
+                </div>
+            </ReactResizableBox>
+
+        </>
     );
 }

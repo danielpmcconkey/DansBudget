@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
-import FormErrors from "../FormErrors";
-//import Validate from "../utility/FormValidation";
 import { Auth } from "aws-amplify";
-import { Form, Button, Nav, Container } from 'react-bootstrap';
+import { Form, Nav, Container } from 'react-bootstrap';
 
 class Register extends Component {
     state = {
@@ -58,7 +56,7 @@ class Register extends Component {
             // AWS Cognito integration here
             const { username, email, password } = this.state;
             try {
-                const signUpResponse = await Auth.signUp({
+                await Auth.signUp({
                     username,
                     password,
                     attributes: {
@@ -89,7 +87,7 @@ class Register extends Component {
         return (
             <Container className="new-account-form">
                 <h1>Register</h1>
-                <FormErrors formerrors={this.state.errors} />
+                {/* <FormErrors formerrors={this.state.errors} /> */}
 
                 <Form onSubmit={this.handleSubmit}>
                     <p className="account-card-form-label">User name:</p>
@@ -134,7 +132,7 @@ class Register extends Component {
                             </Button> */}
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link className="orangeButtonOutline" href="#link" href="/forgotpassword">Forgot password?</Nav.Link>
+                                <Nav.Link className="orangeButtonOutline" href="/forgotpassword">Forgot password?</Nav.Link>
                                 {/* <Button className="orangeButtonOutline" href="/forgotpassword">Forgot password?</Button> */}
                             </Nav.Item>
                         </Nav>
