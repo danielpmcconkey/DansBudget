@@ -33,16 +33,16 @@ export default class Simulation extends Component {
     properties = [];
     employers = [];
     householdId = "authVal";
-    primaryCheckingAccountId = "bec16915-06f6-4e09-b472-c54fbb0880d8";
-    dailySpendAccountId = "c9fefac5-2d5e-4de2-9f88-89d343738f08";
-    newInvestmentsAccountId = "8adbbfdc-ae66-4caf-809c-4c132a772c70";
-    primarySavingAccountId = "37f4b17c-8ea5-468c-8ba6-93b204af53a7";
+    primaryCheckingAccountId = ""; //"bec16915-06f6-4e09-b472-c54fbb0880d8";
+    dailySpendAccountId = ""; //"c9fefac5-2d5e-4de2-9f88-89d343738f08";
+    newInvestmentsAccountId = ""; //"8adbbfdc-ae66-4caf-809c-4c132a772c70";
+    primarySavingAccountId = ""; //"37f4b17c-8ea5-468c-8ba6-93b204af53a7";
     primaryCheckingAccount = {};
     dailySpendAccount = {};
     newInvestmentsAccount = {};
     primarySavingAccount = {};
     simulationRunDate = moment();
-    endDate = moment("2041-01-01");
+    endDate = moment(); //moment("2041-01-01");
     paySchedule = [];
     worthSchedule = [];
     billsMonthlySpend = 0;
@@ -429,6 +429,15 @@ export default class Simulation extends Component {
         }
     }
     fetchAll = async () => {
+        // fetch household valuse
+        const household = await this.multiFetch(`${config.api.invokeUrlHousehold}/households`);
+        // store household values in class props
+        this.primaryCheckingAccountId = household.Item.primaryCheckingAccount;
+        this.dailySpendAccountId = household.Item.dailySpendAccount;
+        this.newInvestmentsAccountId = household.Item.newInvestmentsAccount;
+        this.primarySavingAccountId = household.Item.primarySavingAccount;
+        this.endDate = moment(household.Item.targetRetirementDate);
+        // fetch account data
         this.assetAccounts = await this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
         this.debtAccounts = await this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`);
         this.bills = await this.multiFetch(`${config.api.invokeUrlBill}/bills`);

@@ -66,7 +66,7 @@ export default class BudgetAdmin extends Component {
                                             <Nav.Link href="#first" onClick={this.handleBudgetEdit}>Edit</Nav.Link>
                                         </Nav.Item>
                                         <Nav.Item>
-                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteBudget(this.props.assetAccountId, event)}>Delete</Nav.Link>
+                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteBudget(this.props.budgetId, event)}>Delete</Nav.Link>
                                         </Nav.Item>
                                     </Nav>
                                 </Card.Header>
