@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
 import { Card, Nav, Form, Button } from 'react-bootstrap';
 
+
 export default class EmployerAdmin extends Component {
 
     state = {
@@ -11,6 +12,7 @@ export default class EmployerAdmin extends Component {
         updatedCurrentSalaryNetPerPaycheck: this.props.currentSalaryNetPerPaycheck,
         updatedEmployerId: this.props.employerId,
         updatedEmployerRetirementAccount: this.props.employerRetirementAccount,
+        updatedEmployerRetirementAccountDisplay: "burp",
         updatedHouseholdId: this.props.householdId,
         updatedMostRecentBonusDate: this.props.mostRecentBonusDate,
         updatedMostRecentPayday: this.props.mostRecentPayday,
@@ -18,6 +20,7 @@ export default class EmployerAdmin extends Component {
         updatedPayFrequency: this.props.payFrequency,
         updatedRetirementContributionRate: this.props.retirementContributionRate,
         updatedRetirementMatchRate: this.props.retirementMatchRate,
+        assetAccounts: []
     }
 
     handleEmployerEdit = event => {
@@ -49,7 +52,10 @@ export default class EmployerAdmin extends Component {
     onBonusTargetRateChange = event => this.setState({ "updatedBonusTargetRate": event.target.value });
     onCurrentSalaryGrossAnnualChange = event => this.setState({ "updatedCurrentSalaryGrossAnnual": event.target.value });
     onCurrentSalaryNetPerPaycheckChange = event => this.setState({ "updatedCurrentSalaryNetPerPaycheck": event.target.value });
-    onNEmployerRetirementAccountChange = event => this.setState({ "updatedEmployerRetirementAccount": event.target.value });
+    onNEmployerRetirementAccountChange = (event) => {
+        this.setState({ "updatedEmployerRetirementAccount": event.target.value });
+        this.updateRetirementAccountDisplayName(event.target.value);
+    }
     onMostRecentBonusDateChange = event => this.setState({ "updatedMostRecentBonusDate": event.target.value });
     onMostRecentPaydayChange = event => this.setState({ "updatedMostRecentPayday": event.target.value });
     onNickNameChange = event => this.setState({ "updatedNickName": event.target.value });
@@ -57,8 +63,35 @@ export default class EmployerAdmin extends Component {
     onRetirementContributionRateChange = event => this.setState({ "updatedRetirementContributionRate": event.target.value });
     onRetirementMatchRateChange = event => this.setState({ "updatedRetirementMatchRate": event.target.value });
 
+    updateRetirementAccountDisplayName = async (accountId) => {
+        var displayName = "Unknown";
+        var list = this.state.assetAccounts;
+        if (list.length < 1) list = this.props.assetAccounts;
+        // alert(this.state.assetAccounts.length);
+        for (var i = 0; i < list.length; i++) {
+            var account = list[i];
+            if (account.assetAccountId === accountId) {
+                displayName = account.nickName;
+            }
+        }
+        this.setState({
+            assetAccounts: this.props.assetAccounts,
+            updatedEmployerRetirementAccountDisplay: displayName
+        });
+    }
 
+    componentDidMount = async () => {
+        await this.updateRetirementAccountDisplayName(this.state.updatedEmployerRetirementAccount);
+    }
     render() {
+        const { assetAccounts } = this.state;
+        let assetAccountsList = assetAccounts.length > 0
+            && assetAccounts.map((item, i) => {
+                return (
+                    <option key={i} value={item.assetAccountId}>{item.nickName}</option>
+                )
+            }, this);
+
         return (
             <>
                 {
@@ -104,11 +137,14 @@ export default class EmployerAdmin extends Component {
                                         onChange={this.onCurrentSalaryNetPerPaycheckChange}
                                     />
                                     <span className="account-card-form-label">Employer retirement account ID:</span><br style={{ marginTop: '1em' }} />
-                                    <Form.Control type="text"
+                                    <Form.Control as="select"
                                         placeholder="Enter employer retirement account ID"
                                         value={this.state.updatedEmployerRetirementAccount}
                                         onChange={this.onNEmployerRetirementAccountChange}
-                                    />
+                                    >
+                                        {assetAccountsList}
+                                    </Form.Control>
+
                                     <span className="account-card-form-label">Most recent bonus date:</span><br style={{ marginTop: '1em' }} />
                                     <Form.Control type="text"
                                         placeholder="YYYY-MM-DD"
@@ -162,7 +198,7 @@ export default class EmployerAdmin extends Component {
                                     <span className="card-text">pay frequency: {this.props.payFrequency}</span><br />
                                     <span className="card-text">bonus target rate: {this.props.bonusTargetRate}</span><br />
                                     <span className="card-text">net per paycheck: <NumberFormat value={this.props.currentSalaryNetPerPaycheck} displayType={'text'} thousandSeparator={true} prefix={'$'} /></span><br />
-                                    <span className="card-text">retirement account: {this.props.employerRetirementAccount}</span><br />
+                                    <span className="card-text">retirement account: {this.state.updatedEmployerRetirementAccountDisplay}</span><br />
                                     <span className="card-text">last bonus: {this.props.mostRecentBonusDate}</span><br />
                                     <span className="card-text">last pay day: {this.props.mostRecentPayday}</span><br />
                                     <span className="card-text">retirement contribution rate: {this.props.retirementContributionRate}</span><br />

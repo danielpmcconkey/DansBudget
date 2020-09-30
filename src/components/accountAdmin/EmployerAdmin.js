@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Employer from './Employer';
-import axios from "axios";
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import axios from "axios";
 const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
@@ -28,6 +28,7 @@ export default class EmployerAdmin extends Component {
         },
         employers: [],
         householdId: 'authVal',
+        assetAccounts: []
     }
 
     resetNewEmployer = async () => {
@@ -188,6 +189,26 @@ export default class EmployerAdmin extends Component {
         }
     }
 
+    fetchAssetAccounts = async () => {
+        try {
+            var url = `${config.api.invokeUrlAssetAccount}/asset-accounts`
+            const res = await axios.get(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                data: null
+            });
+            this.setState({
+                assetAccounts: multiSort.multiSort(res.data, "balance", false)
+            });
+
+        } catch (err) {
+            this.props.onChangeMessage(`Error pulling asset accounts from database: ${err}`, "danger", "Error", true);
+        }
+    }
+
+
     onBonusTargetRateChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "bonusTargetRate": event.target.value } });
     onCurrentSalaryGrossAnnualChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "currentSalaryGrossAnnual": event.target.value } });
     onCurrentSalaryNetPerPaycheckChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "currentSalaryNetPerPaycheck": event.target.value } });
@@ -207,10 +228,19 @@ export default class EmployerAdmin extends Component {
                 { isUserAuthenticated: true }
             );
             this.fetchEmployers();
+            this.fetchAssetAccounts();
         }
     }
 
     render() {
+        const { assetAccounts } = this.state;
+        let assetAccountsList = assetAccounts.length > 0
+            && assetAccounts.map((item, i) => {
+                return (
+                    <option key={i} value={item.assetAccountId}>{item.nickName}</option>
+                )
+            }, this);
+
         return (
             <>
                 {this.state.isUserAuthenticated ?
@@ -260,11 +290,12 @@ export default class EmployerAdmin extends Component {
                                         />
 
                                         <p className="account-card-form-label">Employer retirement account ID:</p>
-                                        <Form.Control type="text"
+                                        <Form.Control as="select"
                                             placeholder="Enter employer retirement account ID"
                                             value={this.state.newEmployer.employerRetirementAccount}
-                                            onChange={this.onNEmployerRetirementAccountChange}
-                                        />
+                                            onChange={this.onNEmployerRetirementAccountChange}>
+                                            {assetAccountsList}
+                                        </Form.Control>
 
                                         <p className="account-card-form-label">Most recent bonus date:</p>
                                         <Form.Control type="text"
@@ -328,6 +359,7 @@ export default class EmployerAdmin extends Component {
                                                 payFrequency={employer.payFrequency}
                                                 retirementContributionRate={employer.retirementContributionRate}
                                                 retirementMatchRate={employer.retirementMatchRate}
+                                                assetAccounts={assetAccounts}
                                             />)
                                     }
                                 </div>
