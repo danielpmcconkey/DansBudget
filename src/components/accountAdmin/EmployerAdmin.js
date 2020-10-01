@@ -339,7 +339,7 @@ export default class EmployerAdmin extends Component {
                             </Col>
                             <Col sm={8}>
                                 <div>
-                                    <h3 className="new-account-form-header">Your asset accounts</h3>
+                                    <h3 className="new-account-form-header">Your employers</h3>
                                     {
                                         this.state.employers.map((employer, index) =>
                                             <Employer
