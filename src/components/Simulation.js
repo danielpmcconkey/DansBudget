@@ -4,7 +4,7 @@ import WealthAreaChart from './WealthAreaChart';
 import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
-import { Alert, Button } from 'react-bootstrap';
+import { Alert, Button, Container, Card } from 'react-bootstrap';
 const config = require('../config.json');
 const moment = require('moment');
 const multiSort = require('./sharedFunctions/multiSort');
@@ -24,7 +24,20 @@ export default class Simulation extends Component {
         isLoading: true,
         isSaving: false,
         isSaveComplete: false,
-        hasntRunYet: true
+        hasntRunYet: true,
+        isPreflightChecklistLoading: true,
+        simDetailLabels: {
+            primaryCheckingAccount: "",
+            primarySavingAccount: "",
+            dailySpendAccount: "",
+            newInvestmentsAccount: "",
+            targetRetirementDate: "",
+            totalCurrentHighRateDebt: 0,
+            totalCurrentLowRateDebt: 0,
+            totalCurrentAssets: 0,
+            totalCurrentPropertyValue: 0,
+            totalCurrentNetworth: 0
+        }
     }
     /* #region sim properties */
     assetAccounts = [];
@@ -55,7 +68,7 @@ export default class Simulation extends Component {
     /* #endregion */
     runSim = async () => {
         try {
-            await this.setup();
+
 
             while (this.simulationRunDate <= this.endDate) {
 
@@ -384,6 +397,23 @@ export default class Simulation extends Component {
             }
         }
     }
+    assignPreflightCheckListDetails = () => {
+        this.setState({
+            simDetailLabels: {
+                primaryCheckingAccount: this.primaryCheckingAccount.nickName,
+                primarySavingAccount: this.primarySavingAccount.nickName,
+                dailySpendAccount: this.dailySpendAccount.nickName,
+                newInvestmentsAccount: this.newInvestmentsAccount.nickName,
+                targetRetirementDate: this.endDate.format("YYYY-MM-DD"),
+                totalCurrentHighRateDebt: 0,
+                totalCurrentLowRateDebt: 0,
+                totalCurrentAssets: 0,
+                totalCurrentPropertyValue: 0,
+                totalCurrentNetworth: 0
+            },
+            isPreflightChecklistLoading: false
+        })
+    }
     calculateBurnRates = () => {
         var i = 0;
         var a = {};
@@ -497,6 +527,7 @@ export default class Simulation extends Component {
         this.calculateBurnRates();
         this.assignHouseholdAccounts();
         this.catchUpPaymentDates();
+        this.assignPreflightCheckListDetails();
     }
     trueUpLastPaymentDate = (inVal, payFrequency) => {
 
@@ -707,12 +738,14 @@ export default class Simulation extends Component {
     /* #endregion */
 
     /* #region rendering */
-    componentDidMount = () => {
+    componentDidMount = async () => {
         if (this.props.auth.user !== null) {
             this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
             this.setState(
                 { isUserAuthenticated: true }
             );
+            await this.setup();
+
             //this.runSim();
         }
 
@@ -737,14 +770,35 @@ export default class Simulation extends Component {
 
                 { this.state.hasntRunYet ?
                     // stuff to do if it hasn't run yet
-                    <Button
-                        onClick={this.handleRunSimButton}
-                        className="orangeButton"
-                        type="submit"
-                        style={{ marginTop: '1em' }}
-                        variant="primary">
-                        Run simulation
-                    </Button>
+
+                    <Container className="new-account-form">
+                        <h1>Is the sim ready?</h1>
+                        <Card border="primary" className="account-card account-card-edit">
+                            <Card.Body>
+                                <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
+                                <Card.Text>
+                                    {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                                        <>
+                                            <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
+                                        </>
+                                    }
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
+
+                        <Button
+                            onClick={this.handleRunSimButton}
+                            className="orangeButton"
+                            type="submit"
+                            style={{ marginTop: '1em' }}
+                            variant="primary">
+                            Run simulation
+                            </Button>
+                    </Container>
                     :
                     // stuff to do if it has already run
                     this.state.isUserAuthenticated ?
