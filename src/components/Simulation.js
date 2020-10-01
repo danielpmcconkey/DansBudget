@@ -23,7 +23,8 @@ export default class Simulation extends Component {
         reactChartsData: {},
         isLoading: true,
         isSaving: false,
-        isSaveComplete: false
+        isSaveComplete: false,
+        hasntRunYet: true
     }
     /* #region sim properties */
     assetAccounts = [];
@@ -712,52 +713,75 @@ export default class Simulation extends Component {
             this.setState(
                 { isUserAuthenticated: true }
             );
-            this.runSim();
+            //this.runSim();
         }
 
+    }
+    handleRunSimButton = event => {
+        this.setState(
+            { hasntRunYet: false }
+        );
+        this.runSim();
     }
     handleSaveSimData = event => {
         event.preventDefault();
         this.saveSimData();
     }
 
+
     render() {
 
 
         return (
             <>
-                { this.state.isUserAuthenticated ?
-                    <div>
-                        {this.state.isLoading &&
-                            <Alert variant="info">
-                                <Alert.Heading>Please wait</Alert.Heading>
-                                <p>Your simulation is running. This may take a few seconds.</p>
-                            </Alert>
-                        }
-                        {this.state.isSaving && <LoaderSpinner />}
-                        {(this.state.isLoading === false && this.state.isSaving === false && this.state.isSaveComplete === false) &&
-                            <Alert variant="info">
-                                <Alert.Heading>Finished</Alert.Heading>
-                                <p>Your simulation is complete.</p>
-                                <Button
-                                    onClick={this.handleSaveSimData}
-                                    className="orangeButton"
-                                    type="submit"
-                                    style={{ marginTop: '1em' }}
-                                    variant="primary">
-                                    Save simulation results
+
+                { this.state.hasntRunYet ?
+                    // stuff to do if it hasn't run yet
+                    <Button
+                        onClick={this.handleRunSimButton}
+                        className="orangeButton"
+                        type="submit"
+                        style={{ marginTop: '1em' }}
+                        variant="primary">
+                        Run simulation
+                    </Button>
+                    :
+                    // stuff to do if it has already run
+                    this.state.isUserAuthenticated ?
+                        <div>
+                            {this.state.isLoading &&
+                                <Alert variant="info">
+                                    <Alert.Heading>Please wait</Alert.Heading>
+                                    <p>Your simulation is running. This may take a few seconds.</p>
+                                </Alert>
+                            }
+                            {this.state.isSaving && <LoaderSpinner />}
+                            {(this.state.isLoading === false && this.state.isSaving === false && this.state.isSaveComplete === false) &&
+                                <Alert variant="info">
+                                    <Alert.Heading>Finished</Alert.Heading>
+                                    <p>Your simulation is complete.</p>
+                                    <Button
+                                        onClick={this.handleSaveSimData}
+                                        className="orangeButton"
+                                        type="submit"
+                                        style={{ marginTop: '1em' }}
+                                        variant="primary">
+                                        Save simulation results
                                 </Button>
-                            </Alert>
+                                </Alert>
 
 
-                        }
+                            }
 
-                        {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
-                        {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
-                        {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
-                    </div>
-                    : <div><p>You must log in to view this content</p></div>
+                            {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
+                            {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
+                            {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
+                        </div>
+                        : <div><p>You must log in to view this content</p></div>
+
                 }
+                {/* end check if already run */}
+
 
             </>
         );
