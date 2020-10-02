@@ -4,8 +4,8 @@ import WealthAreaChart from './WealthAreaChart';
 import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
-import { Alert, Button, Container, Card } from 'react-bootstrap';
-import NumberFormat from 'react-number-format';
+import { Alert, Button, Container, Card, Row, Col } from 'react-bootstrap';
+import WorthCard from './WorthCard';
 const config = require('../config.json');
 const moment = require('moment');
 const multiSort = require('./sharedFunctions/multiSort');
@@ -96,7 +96,6 @@ export default class Simulation extends Component {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
             // console.log("Fin");
-            this.setState({ isLoading: false });
         }
     }
 
@@ -457,49 +456,38 @@ export default class Simulation extends Component {
         var household = {};
 
         // fetch household values in parallel
-        try {
-            await Promise.all([
-                new Promise((resolve, reject) => {
-                    household = this.multiFetch(`${config.api.invokeUrlHousehold}/households`)
-                }),
-                new Promise((resolve, reject) => {
-                    this.assetAccounts = this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`)
-                }),
-                new Promise((resolve, reject) => {
-                    this.debtAccounts = this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`)
-                }),
-                new Promise((resolve, reject) => {
-                    this.bills = this.multiFetch(`${config.api.invokeUrlBill}/bills`)
-                }),
-                new Promise((resolve, reject) => {
-                    this.budgets = this.multiFetch(`${config.api.invokeUrlBudget}/budgets`)
-                }),
-                new Promise((resolve, reject) => {
-                    this.properties = this.multiFetch(`${config.api.invokeUrlProperty}/properties`);
-                    alert(`help: ${JSON.stringify(this.properties)}`);
-                }),
-                new Promise((resolve, reject) => {
-                    this.employers = this.multiFetch(`${config.api.invokeUrlEmployer}/employers`)
-                })
+        const promiseHousehold = this.multiFetch(`${config.api.invokeUrlHousehold}/households`);
+        const promiseAssetAccounts = this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
+        const promiseDebtAccounts = this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`);
+        const promiseBills = this.multiFetch(`${config.api.invokeUrlBill}/bills`);
+        const promiseBudgets = this.multiFetch(`${config.api.invokeUrlBudget}/budgets`);
+        const promiseProperties = this.multiFetch(`${config.api.invokeUrlProperty}/properties`);
+        const promiseEmployers = this.multiFetch(`${config.api.invokeUrlEmployer}/employers`);
 
-            ])
-        } catch (err) {
-            console.log(`ERROR: ${err}`);
-        }
+        await Promise.all([
+            promiseHousehold,
+            promiseAssetAccounts,
+            promiseDebtAccounts,
+            promiseBills,
+            promiseBudgets,
+            promiseProperties,
+            promiseEmployers
+        ]).then((values) => {
+            household = values[0];
+            this.assetAccounts = values[1];
+            this.debtAccounts = values[2];
+            this.bills = values[3];
+            this.budgets = values[4];
+            this.properties = values[5];
+            this.employers = values[6];
+        });
 
-        alert(`help: ${JSON.stringify(this.properties)}`);
         // store household values in class props
         this.primaryCheckingAccountId = household.Item.primaryCheckingAccount;
         this.dailySpendAccountId = household.Item.dailySpendAccount;
         this.newInvestmentsAccountId = household.Item.newInvestmentsAccount;
         this.primarySavingAccountId = household.Item.primarySavingAccount;
         this.endDate = moment(household.Item.targetRetirementDate);
-        // fetch account data
-
-
-
-
-
 
         // sort debts by balance decending so you pay the highest off first
         this.debtAccounts = multiSort.multiSort(this.debtAccounts, "rate", false);
@@ -775,16 +763,18 @@ export default class Simulation extends Component {
                 { isUserAuthenticated: true }
             );
             await this.setup();
-
-            //this.runSim();
         }
 
     }
     handleRunSimButton = event => {
         this.setState(
-            { hasntRunYet: false }
+            {
+                hasntRunYet: false,
+                isLoading: true
+            }
         );
         this.runSim();
+        this.setState({ isLoading: false });
     }
     handleSaveSimData = event => {
         event.preventDefault();
@@ -797,101 +787,45 @@ export default class Simulation extends Component {
 
         return (
             <>
+                { this.state.isUserAuthenticated ?
+                    // authenticated content
 
-                { this.state.hasntRunYet ?
-                    // stuff to do if it hasn't run yet
+                    this.state.hasntRunYet ?
+                        // stuff to do if it hasn't run yet
+                        <Container className="new-account-form">
+                            <h1>Is the sim ready?</h1>
+                            <Card border="primary" className="account-card account-card-edit">
+                                <Card.Body>
+                                    <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
+                                    <Card.Text>
+                                        {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                                            <>
+                                                <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
+                                            </>
+                                        }
+                                    </Card.Text>
+                                </Card.Body>
+                            </Card>
+                            {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                                <WorthCard worthObject={this.state.simDetailLabels.worthObject} header="Verify your balances" />}
 
-                    <Container className="new-account-form">
-                        <h1>Is the sim ready?</h1>
-                        <Card border="primary" className="account-card account-card-edit">
-                            <Card.Body>
-                                <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
-                                <Card.Text>
-                                    {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
-                                        <>
-                                            <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
-                                        </>
-                                    }
-                                </Card.Text>
-                            </Card.Body>
-                        </Card>
-                        <Card border="primary" className="account-card account-card-edit">
-                            <Card.Body>
-                                <Card.Header><h3 className="account-card-header">Verify your balances</h3></Card.Header>
-                                <Card.Text>
-                                    {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
-                                        <>
-                                            <span className="account-card-form-label">
-                                                <strong>High-rate debt: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.highRateDebt}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label">
-                                                <strong>Low-rate debt: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.lowRateDebt}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label">
-                                                <strong>Taxable assets: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.taxableAssets}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label">
-                                                <strong>Tax-advantaged assets: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.taxAdvantagedAssets}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label">
-                                                <strong>Total property value: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.totalPropertyValue}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                            <span className="account-card-form-label">
-                                                <strong>Net worth: </strong>
-                                                <NumberFormat
-                                                    value={this.state.simDetailLabels.worthObject.netWorth}
-                                                    displayType={'text'}
-                                                    thousandSeparator={true}
-                                                    prefix={'$'} />
-                                            </span><br style={{ marginTop: '.25em' }} />
-                                        </>
-                                    }
-                                </Card.Text>
-                            </Card.Body>
-                        </Card>
+                            <Button
+                                onClick={this.handleRunSimButton}
+                                className="orangeButton"
+                                type="submit"
+                                style={{ marginTop: '1em' }}
+                                variant="primary">
+                                Run simulation
+                                </Button>
+                        </Container>
+                        :
+                        // stuff to do if it has already run
 
-                        <Button
-                            onClick={this.handleRunSimButton}
-                            className="orangeButton"
-                            type="submit"
-                            style={{ marginTop: '1em' }}
-                            variant="primary">
-                            Run simulation
-                            </Button>
-                    </Container>
-                    :
-                    // stuff to do if it has already run
-                    this.state.isUserAuthenticated ?
-                        <div>
+                        <>
                             {this.state.isLoading &&
                                 <Alert variant="info">
                                     <Alert.Heading>Please wait</Alert.Heading>
@@ -910,22 +844,33 @@ export default class Simulation extends Component {
                                         style={{ marginTop: '1em' }}
                                         variant="primary">
                                         Save simulation results
-                                </Button>
+                                    </Button>
                                 </Alert>
-
-
                             }
 
-                            {this.state.isLoading ? <LoaderSpinner /> : <WealthAreaChart auth={this.props.auth} />}
+                            {this.state.isLoading ? <LoaderSpinner /> :
+                                <Container fluid>
+                                    <Row>
+                                        <Col>
+                                            <WealthAreaChart auth={this.props.auth} />
+                                        </Col>
+                                        <Col>
+                                            <WorthCard worthObject={this.state.worthScheduleStateful[this.state.worthScheduleStateful.length - 1]} header="Projected net worth at retirement" />
+                                        </Col>
+                                    </Row>
+                                </Container>
+                            }
                             {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
                             {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
-                        </div>
-                        : <div><p>You must log in to view this content</p></div>
+                        </>
 
+                    :
+                    // unauthenticated content
+                    <Alert variant="danger">
+                        <Alert.Heading>Not authorized</Alert.Heading>
+                        <p>You must log in to view this content</p>
+                    </Alert>
                 }
-                {/* end check if already run */}
-
-
             </>
         );
     }
