@@ -5,10 +5,10 @@ import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
 import { Alert, Button, Container, Card } from 'react-bootstrap';
+import NumberFormat from 'react-number-format';
 const config = require('../config.json');
 const moment = require('moment');
 const multiSort = require('./sharedFunctions/multiSort');
-
 
 
 export default class Simulation extends Component {
@@ -32,11 +32,7 @@ export default class Simulation extends Component {
             dailySpendAccount: "",
             newInvestmentsAccount: "",
             targetRetirementDate: "",
-            totalCurrentHighRateDebt: 0,
-            totalCurrentLowRateDebt: 0,
-            totalCurrentAssets: 0,
-            totalCurrentPropertyValue: 0,
-            totalCurrentNetworth: 0
+            worthObject: {}
         }
     }
     /* #region sim properties */
@@ -398,6 +394,8 @@ export default class Simulation extends Component {
         }
     }
     assignPreflightCheckListDetails = () => {
+        var worthObject = this.getCurrentWorthObject();
+
         this.setState({
             simDetailLabels: {
                 primaryCheckingAccount: this.primaryCheckingAccount.nickName,
@@ -405,14 +403,10 @@ export default class Simulation extends Component {
                 dailySpendAccount: this.dailySpendAccount.nickName,
                 newInvestmentsAccount: this.newInvestmentsAccount.nickName,
                 targetRetirementDate: this.endDate.format("YYYY-MM-DD"),
-                totalCurrentHighRateDebt: 0,
-                totalCurrentLowRateDebt: 0,
-                totalCurrentAssets: 0,
-                totalCurrentPropertyValue: 0,
-                totalCurrentNetworth: 0
+                worthObject: worthObject
             },
             isPreflightChecklistLoading: false
-        })
+        });
     }
     calculateBurnRates = () => {
         var i = 0;
@@ -460,8 +454,40 @@ export default class Simulation extends Component {
         }
     }
     fetchAll = async () => {
-        // fetch household valuse
-        const household = await this.multiFetch(`${config.api.invokeUrlHousehold}/households`);
+        var household = {};
+
+        // fetch household values in parallel
+        try {
+            await Promise.all([
+                new Promise((resolve, reject) => {
+                    household = this.multiFetch(`${config.api.invokeUrlHousehold}/households`)
+                }),
+                new Promise((resolve, reject) => {
+                    this.assetAccounts = this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`)
+                }),
+                new Promise((resolve, reject) => {
+                    this.debtAccounts = this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`)
+                }),
+                new Promise((resolve, reject) => {
+                    this.bills = this.multiFetch(`${config.api.invokeUrlBill}/bills`)
+                }),
+                new Promise((resolve, reject) => {
+                    this.budgets = this.multiFetch(`${config.api.invokeUrlBudget}/budgets`)
+                }),
+                new Promise((resolve, reject) => {
+                    this.properties = this.multiFetch(`${config.api.invokeUrlProperty}/properties`);
+                    alert(`help: ${JSON.stringify(this.properties)}`);
+                }),
+                new Promise((resolve, reject) => {
+                    this.employers = this.multiFetch(`${config.api.invokeUrlEmployer}/employers`)
+                })
+
+            ])
+        } catch (err) {
+            console.log(`ERROR: ${err}`);
+        }
+
+        alert(`help: ${JSON.stringify(this.properties)}`);
         // store household values in class props
         this.primaryCheckingAccountId = household.Item.primaryCheckingAccount;
         this.dailySpendAccountId = household.Item.dailySpendAccount;
@@ -469,12 +495,12 @@ export default class Simulation extends Component {
         this.primarySavingAccountId = household.Item.primarySavingAccount;
         this.endDate = moment(household.Item.targetRetirementDate);
         // fetch account data
-        this.assetAccounts = await this.multiFetch(`${config.api.invokeUrlAssetAccount}/asset-accounts`);
-        this.debtAccounts = await this.multiFetch(`${config.api.invokeUrlDebtAccount}/debt-accounts`);
-        this.bills = await this.multiFetch(`${config.api.invokeUrlBill}/bills`);
-        this.budgets = await this.multiFetch(`${config.api.invokeUrlBudget}/budgets`);
-        this.properties = await this.multiFetch(`${config.api.invokeUrlProperty}/properties`);
-        this.employers = await this.multiFetch(`${config.api.invokeUrlEmployer}/employers`);
+
+
+
+
+
+
         // sort debts by balance decending so you pay the highest off first
         this.debtAccounts = multiSort.multiSort(this.debtAccounts, "rate", false);
         // calculate debtMonthlySpend
@@ -578,6 +604,45 @@ export default class Simulation extends Component {
         return this.addTimeWithoutSetting(inMoment, num, "years");
     }
     calculateNetWorth = () => {
+        var worthObject = this.getCurrentWorthObject();
+        this.worthSchedule.push(worthObject);
+    }
+    compoundDaily = (account) => {
+        var interest = account.balance * (account.rate / 365.25);
+        account.balance += this.roundToCurrency(interest);
+    }
+    compoundDailyProperty = (property) => {
+        var interest = property.homeValue * (property.housingValueIncreaseRate / 365.25);
+        property.homeValue += this.roundToCurrency(interest);
+    }
+    contributeTo401k = (toAccount, amount, comment) => {
+        if (toAccount.isOpen) {
+            toAccount.balance += amount;
+            this.logPaySchedule(this.simulationRunDate, toAccount.nickName, 0, amount, comment);
+        }
+    }
+    debitAnAccount = (account, amount) => {
+
+        account.balance -= amount;
+        if (account.balance < 0) {
+            throw new Error(`Overdrawn on account ${account.nickName}`);
+        }
+    }
+    formatMoney = (number) => {
+        var decPlaces = 2;
+        var decSep = ".";
+        var thouSep = ",";
+        var sign = number < 0 ? "-" : "";
+        var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
+        var j = 0;
+        j = (j = i.length) > 3 ? j % 3 : 0;
+
+        return sign +
+            (j ? i.substr(0, j) + thouSep : "") +
+            i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
+            (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+    }
+    getCurrentWorthObject = () => {
 
         var highRateDebt = 0;
         var lowRateDebt = 0;
@@ -619,42 +684,7 @@ export default class Simulation extends Component {
             totalPropertyValue: this.roundToCurrency(totalPropertyValue),
             netWorth: this.roundToCurrency(totalNetWorth),
         }
-        this.worthSchedule.push(worthObject);
-    }
-    compoundDaily = (account) => {
-        var interest = account.balance * (account.rate / 365.25);
-        account.balance += this.roundToCurrency(interest);
-    }
-    compoundDailyProperty = (property) => {
-        var interest = property.homeValue * (property.housingValueIncreaseRate / 365.25);
-        property.homeValue += this.roundToCurrency(interest);
-    }
-    contributeTo401k = (toAccount, amount, comment) => {
-        if (toAccount.isOpen) {
-            toAccount.balance += amount;
-            this.logPaySchedule(this.simulationRunDate, toAccount.nickName, 0, amount, comment);
-        }
-    }
-    debitAnAccount = (account, amount) => {
-
-        account.balance -= amount;
-        if (account.balance < 0) {
-            throw new Error(`Overdrawn on account ${account.nickName}`);
-        }
-    }
-    formatMoney = (number) => {
-        var decPlaces = 2;
-        var decSep = ".";
-        var thouSep = ",";
-        var sign = number < 0 ? "-" : "";
-        var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
-        var j = 0;
-        j = (j = i.length) > 3 ? j % 3 : 0;
-
-        return sign +
-            (j ? i.substr(0, j) + thouSep : "") +
-            i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
-            (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+        return worthObject;
     }
     logPaySchedule = (inDate, accountName, debits, credits, comment) => {
         var logObject = {
@@ -784,6 +814,65 @@ export default class Simulation extends Component {
                                             <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
                                             <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
                                             <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
+                                        </>
+                                    }
+                                </Card.Text>
+                            </Card.Body>
+                        </Card>
+                        <Card border="primary" className="account-card account-card-edit">
+                            <Card.Body>
+                                <Card.Header><h3 className="account-card-header">Verify your balances</h3></Card.Header>
+                                <Card.Text>
+                                    {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                                        <>
+                                            <span className="account-card-form-label">
+                                                <strong>High-rate debt: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.highRateDebt}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label">
+                                                <strong>Low-rate debt: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.lowRateDebt}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label">
+                                                <strong>Taxable assets: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.taxableAssets}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label">
+                                                <strong>Tax-advantaged assets: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.taxAdvantagedAssets}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label">
+                                                <strong>Total property value: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.totalPropertyValue}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
+                                            <span className="account-card-form-label">
+                                                <strong>Net worth: </strong>
+                                                <NumberFormat
+                                                    value={this.state.simDetailLabels.worthObject.netWorth}
+                                                    displayType={'text'}
+                                                    thousandSeparator={true}
+                                                    prefix={'$'} />
+                                            </span><br style={{ marginTop: '.25em' }} />
                                         </>
                                     }
                                 </Card.Text>
