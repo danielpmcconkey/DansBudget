@@ -2,12 +2,7 @@ import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
 import { Card } from 'react-bootstrap';
 
-
-
 export default class WorthCard extends Component {
-
-
-
     render() {
         return (
             <Card border="primary" className="account-card account-card-edit">

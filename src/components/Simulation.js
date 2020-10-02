@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from "axios";
-import WealthAreaChart from './WealthAreaChart';
+import WealthAreaChart2 from './WealthAreaChart2';
 import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
@@ -852,7 +852,7 @@ export default class Simulation extends Component {
                                 <Container fluid>
                                     <Row>
                                         <Col>
-                                            <WealthAreaChart auth={this.props.auth} />
+                                            <WealthAreaChart2 auth={this.props.auth} worthScheduleStateful={this.state.worthScheduleStateful} />
                                         </Col>
                                         <Col>
                                             <WorthCard worthObject={this.state.worthScheduleStateful[this.state.worthScheduleStateful.length - 1]} header="Projected net worth at retirement" />
