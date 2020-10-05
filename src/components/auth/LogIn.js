@@ -9,16 +9,16 @@ class LogIn extends Component {
         password: "",
         errors: []
     };
-    validateFormState = () => {
+    validateFormState = async () => {
         var isValid = true;
         if (this.state.username === "") {
-            this.setState({
+            await this.setState({
                 errors: this.state.errors.concat('User name field is blank.')
             });
             isValid = false;
         }
         if (this.state.password === "") {
-            this.setState({
+            await this.setState({
                 errors: this.state.errors.concat('Password field is blank.')
             });
             isValid = false;
@@ -30,8 +30,8 @@ class LogIn extends Component {
 
         // Form validation
         // clear error state
-        this.setState({ errors: [] });
-        const isValid = this.validateFormState();
+        await this.setState({ errors: [] });
+        const isValid = await this.validateFormState();
         if (isValid) {
             // AWS Cognito integration here
             try {

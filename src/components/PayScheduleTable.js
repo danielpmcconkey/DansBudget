@@ -8,8 +8,8 @@ export default class PayScheduleTable extends Component {
     state = {
         payScheduleStateful: []
     }
-    componentDidMount = () => {
-        this.setState({ payScheduleStateful: this.props.payScheduleStateful });
+    componentDidMount = async () => {
+        await this.setState({ payScheduleStateful: this.props.payScheduleStateful });
     }
 
     render() {

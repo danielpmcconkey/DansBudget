@@ -1,133 +1,120 @@
 import React, { Component } from 'react';
-import FormErrors from "../FormErrors";
-import Validate from "../utility/FormValidation";
 import { Auth } from 'aws-amplify';
+import { Form, Nav, Container } from 'react-bootstrap';
 
 class ChangePassword extends Component {
     state = {
         oldpassword: "",
         newpassword: "",
         confirmpassword: "",
-        errors: {
-            cognito: null,
-            blankfield: false,
-            passwordmatch: false
+        errors: []
+    }
+
+    validateFormState = async () => {
+        var isValid = true;
+
+        if (this.state.oldpassword === "") {
+            await this.setState({
+                errors: this.state.errors.concat('Old password field is blank.')
+            });
+            isValid = false;
         }
+        if (this.state.newpassword === "") {
+            await this.setState({
+                errors: this.state.errors.concat('New password field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.confirmpassword === "") {
+            await this.setState({
+                errors: this.state.errors.concat('Confirm password field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.confirmpassword !== this.state.newpassword) {
+            await this.setState({
+                errors: this.state.errors.concat('New password and confirm password fields do not match.')
+            });
+            isValid = false;
+        }
+        return isValid;
     }
-
-    clearErrorState = () => {
-        this.setState({
-            errors: {
-                cognito: null,
-                blankfield: false,
-                passwordmatch: false
-            }
-        });
-    }
-
     handleSubmit = async event => {
         event.preventDefault();
 
         // Form validation
-        this.clearErrorState();
-        const error = Validate(event, this.state);
-        if (error) {
-            this.setState({
-                errors: { ...this.state.errors, ...error }
-            });
+        // clear error state
+        await this.setState({ errors: [] });
+        const isValid = await this.validateFormState();
+        if (isValid) {
+            // AWS Cognito integration here
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                // console.log(user);
+                await Auth.changePassword(
+                    user,
+                    this.state.oldpassword,
+                    this.state.newpassword,
+                );
+                this.props.history.push('/ChangePasswordConfirmation');
+            } catch (error) {
+                this.props.onChangeMessage(`An error has occurred: ${error}`, "danger");
+
+            }
         }
-
-        // AWS Cognito integration here
-        try {
-            const user = await Auth.currentAuthenticatedUser();
-            // console.log(user);
-            await Auth.changePassword(
-                user,
-                this.state.oldpassword,
-                this.state.newpassword,
-            );
-            this.props.history.push('/ChangePasswordConfirmation');
-        } catch (error) {
-            this.props.onChangeMessage(`An error has occurred: ${error}`, "danger");
-
+        else {
+            var err = "";
+            for (var i = 0; i < this.state.errors.length; i++) {
+                err += this.state.errors[i];
+            }
+            this.props.onChangeMessage(`Error message(s): ${err}`, "danger", "Error validating change password form", true);
         }
     };
 
-    onInputChange = event => {
-        this.setState({
-            [event.target.id]: event.target.value
-        });
-        document.getElementById(event.target.id).classList.remove("is-danger");
-    }
+    onOldPasswordChange = event => this.setState({ oldpassword: event.target.value });
+    onNewPasswordChange = event => this.setState({ newpassword: event.target.value });
+    onConfirmPasswordChange = event => this.setState({ confirmpassword: event.target.value });
 
     render() {
         return (
-            <section className="section auth">
-                <div className="container">
-                    <h1>Change Password</h1>
-                    <FormErrors formerrors={this.state.errors} />
+            <Container className="new-account-form">
+                <h1>Change Password</h1>
 
-                    <form onSubmit={this.handleSubmit}>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="password"
-                                    id="oldpassword"
-                                    placeholder="Old password"
-                                    value={this.state.oldpassword}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="password"
-                                    id="newpassword"
-                                    placeholder="New password"
-                                    value={this.state.newpassword}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="password"
-                                    id="confirmpassword"
-                                    placeholder="Confirm password"
-                                    value={this.state.confirmpassword}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <a href="/forgotpassword">Forgot password?</a>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <button className="button is-success">
-                                    Change password
-                </button>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </section>
+
+                <Form>
+                    <p className="account-card-form-label">Old password:</p>
+                    <Form.Control type="password"
+                        placeholder="Old password"
+                        value={this.state.oldpassword}
+                        onChange={this.onOldPasswordChange}
+                        id="oldpassword"
+                    />
+                    <p className="account-card-form-label">New password:</p>
+                    <Form.Control type="password"
+                        placeholder="New password"
+                        value={this.state.newpassword}
+                        onChange={this.onNewPasswordChange}
+                        id="newpassword"
+                    />
+                    <p className="account-card-form-label">Confirm password:</p>
+                    <Form.Control type="password"
+                        placeholder="Confirm password"
+                        value={this.state.confirmpassword}
+                        onChange={this.onConfirmPasswordChange}
+                        id="confirmpassword"
+                    />
+                </Form>
+                <Form.Group>
+                    <Nav variant="pills" defaultActiveKey="#first" style={{ marginTop: '1em' }}>
+                        <Nav.Item style={{ marginRight: '1em' }}>
+                            <Nav.Link className="orangeButton" href="#first" onClick={this.handleSubmit}>Change password</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                            <Nav.Link className="orangeButtonOutline" href="/forgotpassword">Forgot password?</Nav.Link>
+                        </Nav.Item>
+                    </Nav>
+                </Form.Group>
+            </Container>
         );
     }
 }

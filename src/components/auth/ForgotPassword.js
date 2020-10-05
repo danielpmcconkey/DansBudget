@@ -1,98 +1,88 @@
 import React, { Component } from 'react';
-import FormErrors from "../FormErrors";
-import Validate from "../utility/FormValidation";
 import { Auth } from 'aws-amplify';
+import { Form, Nav, Container } from 'react-bootstrap';
 
 class ForgotPassword extends Component {
     state = {
         email: "",
-        errors: {
-            cognito: null,
-            blankfield: false
+        errors: []
+    }
+
+    validateFormState = async () => {
+        var isValid = true;
+        if (this.state.email === "") {
+            await this.setState({
+                errors: this.state.errors.concat('Email address field is blank.')
+            });
+            isValid = false;
         }
+        return isValid;
     }
 
-    clearErrorState = () => {
-        this.setState({
-            errors: {
-                cognito: null,
-                blankfield: false
-            }
-        });
-    }
-
-    forgotPasswordHandler = async event => {
+    handleSubmit = async event => {
         event.preventDefault();
 
         // Form validation
-        this.clearErrorState();
-        const error = Validate(event, this.state);
-        if (error) {
-            this.setState({
-                errors: { ...this.state.errors, ...error }
-            });
-        }
+        // clear error state
+        await this.setState({ errors: [] });
+        const isValid = await this.validateFormState();
+        if (isValid) {
 
-        // AWS Cognito integration here
-        try {
-            await Auth.forgotPassword(this.state.email);
-            this.props.history.push('ForgotPasswordVerification');
-        } catch (err) {
-            // console.log(err);
-            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
+            // AWS Cognito integration here
+            try {
+                await Auth.forgotPassword(this.state.email);
+                this.props.history.push('ForgotPasswordVerification');
+            } catch (err) {
+                // console.log(err);
+                this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
+            }
+        }
+        else {
+            var err = "";
+            for (var i = 0; i < this.state.errors.length; i++) {
+                err += this.state.errors[i];
+            }
+            this.props.onChangeMessage(`Error message(s): ${err}`, "danger", "Error validating log in form", true);
         }
     }
+    onEmailChange = event => this.setState({ email: event.target.value });
 
-    onInputChange = event => {
-        this.setState({
-            [event.target.id]: event.target.value
-        });
-        document.getElementById(event.target.id).classList.remove("is-danger");
-    }
+
 
     render() {
         return (
-            <section className="section auth">
-                <div className="container">
-                    <h1>Forgot your password?</h1>
-                    <p>
-                        Please enter the email address associated with your account and we'll
-                        email you a password reset link.
-          </p>
-                    <FormErrors formerrors={this.state.errors} />
+            <Container className="new-account-form">
+                <h1>Forgot your password?</h1>
+                <p>Please enter the email address associated with your account and we'll
+                email you a password reset link.</p>
 
-                    <form onSubmit={this.forgotPasswordHandler}>
-                        <div className="field">
-                            <p className="control has-icons-left has-icons-right">
-                                <input
-                                    type="email"
-                                    className="input"
-                                    id="email"
-                                    aria-describedby="emailHelp"
-                                    placeholder="Enter email"
-                                    value={this.state.email}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-envelope"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <a href="/forgotpassword">Forgot password?</a>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <button className="button is-success">
-                                    Submit
-                </button>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </section>
+
+                <Form>
+
+                    <p className="account-card-form-label">Email address:</p>
+                    <Form.Control
+                        type="email"
+                        className="input"
+                        id="email"
+                        aria-describedby="emailHelp"
+                        placeholder="Enter email"
+                        value={this.state.email}
+                        onChange={this.onEmailChange}
+                    />
+
+
+
+
+                </Form>
+                <Form.Group>
+                    <Nav variant="pills" defaultActiveKey="#first" style={{ marginTop: '1em' }}>
+                        <Nav.Item style={{ marginRight: '1em' }}>
+                            <Nav.Link className="orangeButton" href="#first" onClick={this.handleSubmit}>Submit</Nav.Link>
+                        </Nav.Item>
+                    </Nav>
+                </Form.Group>
+            </Container>
+
         );
     }
 }

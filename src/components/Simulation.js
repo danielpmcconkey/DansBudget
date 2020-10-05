@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import axios from "axios";
 import WealthAreaChart2 from './WealthAreaChart2';
-import LoaderSpinner from './LoaderSpinner';
 import PayScheduleTable from './PayScheduleTable';
 import WorthScheduleTable from './WorthScheduleTable';
-import { Alert, Button, Container, Card, Row, Col } from 'react-bootstrap';
+import { Alert, Button, Container, Card, Row, Col, Spinner } from 'react-bootstrap';
 import WorthCard from './WorthCard';
 const config = require('../config.json');
 const moment = require('moment');
@@ -21,7 +20,7 @@ export default class Simulation extends Component {
         payScheduleStateful: [],
         worthScheduleStateful: [],
         reactChartsData: {},
-        isLoading: true,
+        isLoading: false,
         isSaving: false,
         isSaveComplete: false,
         hasntRunYet: true,
@@ -392,10 +391,10 @@ export default class Simulation extends Component {
             }
         }
     }
-    assignPreflightCheckListDetails = () => {
+    assignPreflightCheckListDetails = async () => {
         var worthObject = this.getCurrentWorthObject();
 
-        this.setState({
+        await this.setState({
             simDetailLabels: {
                 primaryCheckingAccount: this.primaryCheckingAccount.nickName,
                 primarySavingAccount: this.primarySavingAccount.nickName,
@@ -541,7 +540,7 @@ export default class Simulation extends Component {
         this.calculateBurnRates();
         this.assignHouseholdAccounts();
         this.catchUpPaymentDates();
-        this.assignPreflightCheckListDetails();
+        await this.assignPreflightCheckListDetails();
     }
     trueUpLastPaymentDate = (inVal, payFrequency) => {
 
@@ -711,7 +710,7 @@ export default class Simulation extends Component {
     saveSimData = async () => {
 
         this.props.onChangeMessage("Saving sim data", "hidden");
-        this.setState({
+        await this.setState({
             isSaving: true,
             isSaveComplete: false
         });
@@ -776,9 +775,9 @@ export default class Simulation extends Component {
         this.runSim();
         this.setState({ isLoading: false });
     }
-    handleSaveSimData = event => {
+    handleSaveSimData = async event => {
         event.preventDefault();
-        this.saveSimData();
+        await this.saveSimData();
     }
 
 
@@ -798,7 +797,7 @@ export default class Simulation extends Component {
                                 <Card.Body>
                                     <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
                                     <Card.Text>
-                                        {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                                        {this.state.isPreflightChecklistLoading ? <Spinner as="span" animation="border" variant="warning" /> :
                                             <>
                                                 <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
                                                 <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
@@ -810,7 +809,7 @@ export default class Simulation extends Component {
                                     </Card.Text>
                                 </Card.Body>
                             </Card>
-                            {this.state.isPreflightChecklistLoading ? <LoaderSpinner /> :
+                            {this.state.isPreflightChecklistLoading ? <Spinner animation="border" variant="warning" /> :
                                 <WorthCard worthObject={this.state.simDetailLabels.worthObject} header="Verify your balances" />}
 
                             <Button
@@ -819,6 +818,18 @@ export default class Simulation extends Component {
                                 type="submit"
                                 style={{ marginTop: '1em' }}
                                 variant="primary">
+                                {this.state.isLoading &&
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            variant="light"
+                                        /> &nbsp;
+                                    </>
+                                }
                                 Run simulation
                                 </Button>
                         </Container>
@@ -832,7 +843,7 @@ export default class Simulation extends Component {
                                     <p>Your simulation is running. This may take a few seconds.</p>
                                 </Alert>
                             }
-                            {this.state.isSaving && <LoaderSpinner />}
+                            {this.state.isSaving && <Spinner animation="border" variant="warning" />}
                             {(this.state.isLoading === false && this.state.isSaving === false && this.state.isSaveComplete === false) &&
                                 <Alert variant="info">
                                     <Alert.Heading>Finished</Alert.Heading>
@@ -843,12 +854,24 @@ export default class Simulation extends Component {
                                         type="submit"
                                         style={{ marginTop: '1em' }}
                                         variant="primary">
+                                        {this.state.isSaving &&
+                                            <>
+                                                <Spinner
+                                                    as="span"
+                                                    animation="border"
+                                                    size="sm"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                    variant="light"
+                                                /> &nbsp;
+                                            </>
+                                        }
                                         Save simulation results
                                     </Button>
                                 </Alert>
                             }
 
-                            {this.state.isLoading ? <LoaderSpinner /> :
+                            {this.state.isLoading ? <Spinner animation="border" variant="warning" /> :
                                 <Container fluid>
                                     <Row>
                                         <Col>
@@ -860,8 +883,8 @@ export default class Simulation extends Component {
                                     </Row>
                                 </Container>
                             }
-                            {this.state.isLoading ? <LoaderSpinner /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
-                            {this.state.isLoading ? <LoaderSpinner /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
+                            {this.state.isLoading ? <Spinner animation="border" variant="warning" /> : <PayScheduleTable payScheduleStateful={this.state.payScheduleStateful} />}
+                            {this.state.isLoading ? <Spinner animation="border" variant="warning" /> : <WorthScheduleTable worthScheduleStateful={this.state.worthScheduleStateful} />}
                         </>
 
                     :

@@ -1,127 +1,133 @@
 import React, { Component } from 'react';
-import FormErrors from "../FormErrors";
-import Validate from "../utility/FormValidation";
 import { Auth } from 'aws-amplify';
+import { Form, Nav, Container } from 'react-bootstrap';
 
 class ForgotPasswordVerification extends Component {
     state = {
         verificationcode: "",
         email: "",
         newpassword: "",
-        errors: {
-            cognito: null,
-            blankfield: false
+        errors: []
+    };
+
+    validateFormState = async () => {
+        var isValid = true;
+        if (this.state.email === "") {
+            await this.setState({
+                errors: this.state.errors.concat('Email address field is blank.')
+            });
+            isValid = false;
         }
-    };
+        if (this.state.verificationcode === "") {
+            await this.setState({
+                errors: this.state.errors.concat('Verification code field is blank.')
+            });
+            isValid = false;
+        }
+        if (this.state.newpassword === "") {
+            await this.setState({
+                errors: this.state.errors.concat('New password field is blank.')
+            });
+            isValid = false;
+        }
+        return isValid;
+    }
 
-    clearErrorState = () => {
-        this.setState({
-            errors: {
-                cognito: null,
-                blankfield: false
-            }
-        });
-    };
+    clearErrorState = async () => {
+        const cleanSlate = [];
+        await this.setState({ errors: cleanSlate });
+    }
 
-    passwordVerificationHandler = async event => {
+    handleSubmit = async event => {
         event.preventDefault();
 
         // Form validation
-        this.clearErrorState();
-        const error = Validate(event, this.state);
-        if (error) {
-            this.setState({
-                errors: { ...this.state.errors, ...error }
-            });
-        }
+        await this.clearErrorState();
 
-        // AWS Cognito integration here
-        try {
-            await Auth.forgotPasswordSubmit(
-                this.state.email,
-                this.state.verificationcode,
-                this.state.newpassword
-            );
-            this.props.history.push('/ChangePasswordConfirmation');
-        } catch (err) {
-            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
-            //console.log(error);
+
+        alert(JSON.stringify(`errors: ${this.state.errors}`));
+        const isValid = await this.validateFormState();
+        if (isValid) {
+
+            // AWS Cognito integration here
+            try {
+                await Auth.forgotPasswordSubmit(
+                    this.state.email,
+                    this.state.verificationcode,
+                    this.state.newpassword
+                );
+                this.props.history.push('/ChangePasswordConfirmation');
+            } catch (err) {
+                this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
+                //console.log(error);
+            }
+        }
+        else {
+            alert(JSON.stringify(`errors2: ${this.state.errors}`));
+            var err = "";
+            for (var i = 0; i < this.state.errors.length; i++) {
+                err += this.state.errors[i];
+            }
+            this.props.onChangeMessage(`Error message(s): ${err}`, "danger", "Error validating verification form", true);
         }
     };
 
-    onInputChange = event => {
-        this.setState({
-            [event.target.id]: event.target.value
-        });
-        document.getElementById(event.target.id).classList.remove("is-danger");
-    };
+    onEmailChange = event => this.setState({ email: event.target.value });
+    onVerificationCodeChange = event => this.setState({ verificationcode: event.target.value });
+    onNewPasswordChange = event => this.setState({ newpassword: event.target.value });
 
     render() {
         return (
-            <section className="section auth">
-                <div className="container">
-                    <h1>Set new password</h1>
-                    <p>
-                        Please enter the verification code sent to your email address below,
-                        your email address and a new password.
-          </p>
-                    <FormErrors formerrors={this.state.errors} />
+            <Container className="new-account-form">
+                <h1>Set new password</h1>
+                <p>
+                    Please enter the verification code sent to your email address below,
+                    your email address and a new password.
+                </p>
 
-                    <form onSubmit={this.passwordVerificationHandler}>
-                        <div className="field">
-                            <p className="control">
-                                <input
-                                    type="text"
-                                    className="input"
-                                    id="verificationcode"
-                                    aria-describedby="verificationCodeHelp"
-                                    placeholder="Enter verification code"
-                                    value={this.state.verificationcode}
-                                    onChange={this.onInputChange}
-                                />
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    className="input"
-                                    type="email"
-                                    id="email"
-                                    aria-describedby="emailHelp"
-                                    placeholder="Enter email"
-                                    value={this.state.email}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-envelope"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control has-icons-left">
-                                <input
-                                    type="password"
-                                    className="input"
-                                    id="newpassword"
-                                    placeholder="New password"
-                                    value={this.state.newpassword}
-                                    onChange={this.onInputChange}
-                                />
-                                <span className="icon is-small is-left">
-                                    <i className="fas fa-lock"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div className="field">
-                            <p className="control">
-                                <button className="button is-success">
-                                    Submit
-                </button>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                <Form>
+
+
+                    <p className="account-card-form-label">Email address:</p>
+                    <Form.Control
+                        type="email"
+                        className="input"
+                        id="email"
+                        aria-describedby="emailHelp"
+                        placeholder="Enter email"
+                        value={this.state.email}
+                        onChange={this.onEmailChange}
+                    />
+                    <p className="account-card-form-label">Verification code:</p>
+                    <Form.Control
+                        type="text"
+                        className="input"
+                        id="verificationcode"
+                        aria-describedby="verificationCodeHelp"
+                        placeholder="Enter verification code"
+                        value={this.state.verificationcode}
+                        onChange={this.onVerificationCodeChange}
+                    />
+                    <p className="account-card-form-label">New password:</p>
+                    <Form.Control
+                        type="password"
+                        className="input"
+                        id="newpassword"
+                        placeholder="New password"
+                        value={this.state.newpassword}
+                        onChange={this.onNewPasswordChange}
+                    />
+
+                </Form>
+                <Form.Group>
+                    <Nav variant="pills" defaultActiveKey="#first" style={{ marginTop: '1em' }}>
+                        <Nav.Item style={{ marginRight: '1em' }}>
+                            <Nav.Link className="orangeButton" href="#first" onClick={this.handleSubmit}>Submit</Nav.Link>
+                        </Nav.Item>
+                    </Nav>
+                </Form.Group>
+            </Container>
+
         );
     }
 }
