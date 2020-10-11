@@ -145,7 +145,8 @@ export default class DebtAccountAdmin extends Component {
 
             const res = await axios.get(url, requestConfig);
             this.setState({
-                debtAccounts: multiSort.multiSort(res.data, "balance", false)
+                //debtAccounts: multiSort.multiSort(res.data, "balance", false)
+                debtAccounts: multiSort.multiSort(res.data, "rate", false)
             });
 
         } catch (err) {

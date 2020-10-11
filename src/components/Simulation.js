@@ -31,7 +31,8 @@ export default class Simulation extends Component {
             dailySpendAccount: "",
             newInvestmentsAccount: "",
             targetRetirementDate: "",
-            worthObject: {}
+            worthObject: {},
+            cashFlowObject: {}
         }
     }
     /* #region sim properties */
@@ -59,14 +60,21 @@ export default class Simulation extends Component {
     budgetsDailySpend = 0;
     debtMonthlySpend = 0;
     totalDebtInterestAccrual = 0;
+    totalMonthlyIncome = 0;
 
     /* #endregion */
     runSim = async () => {
         try {
 
+            var beginSimActivitiesHaveRunYet = false;
 
             while (this.simulationRunDate <= this.endDate) {
 
+                if (beginSimActivitiesHaveRunYet === false) {
+                    this.tryToPayExtra();
+                    this.tryToInvestExtra();
+                    beginSimActivitiesHaveRunYet = true;
+                }
                 this.dailySpend();
                 this.accrueInterest();
                 this.checkForPayDay();
@@ -87,14 +95,13 @@ export default class Simulation extends Component {
                 this.simulationRunDate.add(1, "days");
             }
 
-            this.props.onChangeMessage("Simulation successful", "success");
+            this.props.onChangeMessage("Simulation successful", "success", "Your simulation has completed successfully", true);
 
         } catch (err) {
-            this.props.onChangeMessage(`Error during simulation run: ${err}`, "danger");
+            this.props.onChangeMessage("Error during simulation run", "danger", `Error contents: ${err}`, true);
         } finally {
             this.setState({ payScheduleStateful: this.paySchedule });
             this.setState({ worthScheduleStateful: this.worthSchedule });
-            // console.log("Fin");
         }
     }
 
@@ -348,10 +355,10 @@ export default class Simulation extends Component {
         e.mostRecentPayday = moment(this.simulationRunDate);
     }
     tryToInvestExtra = () => {
-        var amountYouCanAffordToInvest = this.primaryCheckingAccount.balance -
-            this.billsMonthlySpend - this.budgetsMonthlySpend - this.debtMonthlySpend;
-        if (amountYouCanAffordToInvest > 0) {
-            this.invest(this.primaryCheckingAccount, this.newInvestmentsAccount, amountYouCanAffordToInvest, "Investing surpluss cash");
+        const amountYouCanAffordToPay = this.calculateAmountYouCanAffordToPayExtra();
+        if (amountYouCanAffordToPay > 0) {
+            this.checkFundsAvailabilityAndTransferIfNeededChecking(amountYouCanAffordToPay);
+            this.invest(this.primaryCheckingAccount, this.newInvestmentsAccount, amountYouCanAffordToPay, "Investing surpluss cash");
         }
     }
     tryToPayExtra = () => {
@@ -361,9 +368,9 @@ export default class Simulation extends Component {
             if (a.isOpen) {
                 if (a.rate > this.newInvestmentsAccount.rate) {
                     // if rate is low, put that money in an investment, instead
-                    var amountYouCanAffordToPay = this.primaryCheckingAccount.balance -
-                        this.budgetsMonthlySpend - this.billsMonthlySpend - this.debtMonthlySpend;
+                    const amountYouCanAffordToPay = this.calculateAmountYouCanAffordToPayExtra();
                     if (amountYouCanAffordToPay > 0) {
+                        this.checkFundsAvailabilityAndTransferIfNeededChecking(amountYouCanAffordToPay);
                         this.payALoan(this.primaryCheckingAccount, a, amountYouCanAffordToPay, "Extra payment");
                     }
                 }
@@ -393,6 +400,13 @@ export default class Simulation extends Component {
     }
     assignPreflightCheckListDetails = async () => {
         var worthObject = this.getCurrentWorthObject();
+        const cashFlowObject = {
+            billsMonthlySpend: this.billsMonthlySpend,
+            budgetsMonthlySpend: this.budgetsMonthlySpend,
+            debtMonthlySpend: this.debtMonthlySpend,
+            totalMonthlyIncome: this.totalMonthlyIncome,
+            cashFlow: this.totalMonthlyIncome - this.debtMonthlySpend - this.billsMonthlySpend - this.budgetsMonthlySpend
+        }
 
         await this.setState({
             simDetailLabels: {
@@ -401,7 +415,8 @@ export default class Simulation extends Component {
                 dailySpendAccount: this.dailySpendAccount.nickName,
                 newInvestmentsAccount: this.newInvestmentsAccount.nickName,
                 targetRetirementDate: this.endDate.format("YYYY-MM-DD"),
-                worthObject: worthObject
+                worthObject: worthObject,
+                cashFlowObject: cashFlowObject
             },
             isPreflightChecklistLoading: false
         });
@@ -410,6 +425,7 @@ export default class Simulation extends Component {
         var i = 0;
         var a = {};
         // first budgets
+        // budgets are always monthly
         for (i = 0; i < this.budgets.length; i++) {
             a = this.budgets[i];
             this.budgetsMonthlySpend += a.amount;
@@ -419,15 +435,31 @@ export default class Simulation extends Component {
         // then bills
         for (i = 0; i < this.bills.length; i++) {
             a = this.bills[i];
-            this.billsMonthlySpend += a.amountDue;
+            if (a.payFrequency === "MONTHLY") this.billsMonthlySpend += a.amountDue;
+            else if (a.payFrequency === "WEEKLY") this.billsMonthlySpend += ((a.amountDue * 52) / 12);
+            else if (a.payFrequency === "BIWEEKLY") this.billsMonthlySpend += ((a.amountDue * 26) / 12);
+            else if (a.payFrequency === "FIRSTANDFIFTHTEENTH") this.billsMonthlySpend += (a.amountDue * 2);
         }
         this.billssDailySpend = this.roundToCurrency(this.billsMonthlySpend * 12 / 365.25);
 
         // then debts
         for (i = 0; i < this.debtAccounts.length; i++) {
             a = this.debtAccounts[i];
-            this.debtMonthlySpend += a.minPayment;
+            if (a.payFrequency === "MONTHLY") this.debtMonthlySpend += a.minPayment;
+            else if (a.payFrequency === "WEEKLY") this.debtMonthlySpend += ((a.minPayment * 52) / 12);
+            else if (a.payFrequency === "BIWEEKLY") this.debtMonthlySpend += ((a.minPayment * 26) / 12);
+            else if (a.payFrequency === "FIRSTANDFIFTHTEENTH") this.debtMonthlySpend += (a.minPayment * 2);
         }
+
+        // then income
+        for (i = 0; i < this.employers.length; i++) {
+            a = this.employers[i];
+            if (a.payFrequency === "MONTHLY") this.totalMonthlyIncome += a.currentSalaryNetPerPaycheck;
+            else if (a.payFrequency === "WEEKLY") this.totalMonthlyIncome += ((a.currentSalaryNetPerPaycheck * 52) / 12);
+            else if (a.payFrequency === "BIWEEKLY") this.totalMonthlyIncome += ((a.currentSalaryNetPerPaycheck * 26) / 12);
+            else if (a.payFrequency === "FIRSTANDFIFTHTEENTH") this.totalMonthlyIncome += (a.currentSalaryNetPerPaycheck * 2);
+        }
+        console.log(JSON.stringify(this.employers));
     }
     catchUpPaymentDates = () => {
         // this is used so that the sim doesn't ignore payment dates that are more than
@@ -449,6 +481,17 @@ export default class Simulation extends Component {
                 a.mostRecentBonusDate = a.mostRecentBonusDate.add(1, 'y');
             }
             a.mostRecentPayday = this.trueUpLastPaymentDate(a.mostRecentPayday, a.payFrequency);
+        }
+    }
+    closeZeroBalanceDebts = () => {
+        // this is needed because we keep accounts open after payoff in real life
+        // but don't want the sim to give a payoff notice
+        for (var i = 0; i < this.debtAccounts.length; i++) {
+            var a = this.debtAccounts[i];
+            if (a.balance <= 0) {
+                a.isOpen = false;
+            }
+
         }
     }
     fetchAll = async () => {
@@ -490,10 +533,7 @@ export default class Simulation extends Component {
 
         // sort debts by balance decending so you pay the highest off first
         this.debtAccounts = multiSort.multiSort(this.debtAccounts, "rate", false);
-        // calculate debtMonthlySpend
-        for (var i = 0; i < this.debtAccounts.length; i++) {
-            this.debtMonthlySpend += this.debtAccounts[i].minPayment;
-        }
+
     }
     multiFetch = async (url) => {
         // fetch from any of the budget API get all endpoints
@@ -541,6 +581,7 @@ export default class Simulation extends Component {
         this.assignHouseholdAccounts();
         this.catchUpPaymentDates();
         await this.assignPreflightCheckListDetails();
+        this.closeZeroBalanceDebts();
     }
     trueUpLastPaymentDate = (inVal, payFrequency) => {
 
@@ -589,6 +630,25 @@ export default class Simulation extends Component {
     }
     addYearsWithoutSetting = (inMoment, num) => {
         return this.addTimeWithoutSetting(inMoment, num, "years");
+    }
+    calculateAmountYouCanAffordToPayExtra = () => {
+        var amountYouCanAffordToPay = 0;
+        // add up all your cash, with exception of daily spending
+        amountYouCanAffordToPay += (
+            this.primaryCheckingAccount.balance +
+            this.primarySavingAccount.balance +
+            this.dailySpendAccount.balance);
+        // subtract your monthly burn
+        var monthlyBurn = (
+            this.budgetsMonthlySpend +
+            this.billsMonthlySpend +
+            this.debtMonthlySpend);
+        //alert(`monthly burn: ${monthlyBurn}`);
+        amountYouCanAffordToPay -= monthlyBurn;
+        // pad the amount (for emergencies)
+        amountYouCanAffordToPay -= monthlyBurn; // have a month's expenses on hand always
+        if (amountYouCanAffordToPay > 0) return this.roundToCurrency(amountYouCanAffordToPay);
+        else return 0;
     }
     calculateNetWorth = () => {
         var worthObject = this.getCurrentWorthObject();
@@ -738,7 +798,7 @@ export default class Simulation extends Component {
             };
             await axios.post(`${config.api.invokeUrlSimulation}/sims`, params, { headers: headers });
             this.props.onChangeMessage("Simulation data saved", "success", "Success", true);
-            this.setState({
+            await this.setState({
                 isSaving: false,
                 isSaveComplete: true
             });
@@ -758,22 +818,22 @@ export default class Simulation extends Component {
     componentDidMount = async () => {
         if (this.props.auth.user !== null) {
             this.token = this.props.auth.user.signInUserSession.idToken.jwtToken;
-            this.setState(
+            await this.setState(
                 { isUserAuthenticated: true }
             );
             await this.setup();
         }
 
     }
-    handleRunSimButton = event => {
-        this.setState(
+    handleRunSimButton = async event => {
+        await this.setState(
             {
                 hasntRunYet: false,
                 isLoading: true
             }
         );
-        this.runSim();
-        this.setState({ isLoading: false });
+        await this.runSim();
+        await this.setState({ isLoading: false });
     }
     handleSaveSimData = async event => {
         event.preventDefault();
@@ -792,26 +852,53 @@ export default class Simulation extends Component {
                     this.state.hasntRunYet ?
                         // stuff to do if it hasn't run yet
                         <Container className="new-account-form">
-                            <h1>Is the sim ready?</h1>
-                            <Card border="primary" className="account-card account-card-edit">
-                                <Card.Body>
-                                    <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
-                                    <Card.Text>
-                                        {this.state.isPreflightChecklistLoading ? <Spinner as="span" animation="border" variant="warning" /> :
-                                            <>
-                                                <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
-                                                <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
-                                                <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
-                                                <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
-                                                <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
-                                            </>
-                                        }
-                                    </Card.Text>
-                                </Card.Body>
-                            </Card>
-                            {this.state.isPreflightChecklistLoading ? <Spinner animation="border" variant="warning" /> :
-                                <WorthCard worthObject={this.state.simDetailLabels.worthObject} header="Verify your balances" />}
+                            <Row><Col><h1>Is the sim ready?</h1></Col></Row>
+                            <Row>
+                                <Col>
+                                    <Card border="primary" className="account-card account-card-edit">
+                                        <Card.Body>
+                                            <Card.Header><h3 className="account-card-header">Verify your accounts</h3></Card.Header>
+                                            <Card.Text>
+                                                {this.state.isPreflightChecklistLoading ? <Spinner as="span" animation="border" variant="warning" /> :
+                                                    <>
+                                                        <span className="account-card-form-label"><strong>Primary checking account:</strong> {this.state.simDetailLabels.primaryCheckingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Primary savings account:</strong> {this.state.simDetailLabels.primarySavingAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Daily spend account:</strong> {this.state.simDetailLabels.dailySpendAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Primary investment account:</strong> {this.state.simDetailLabels.newInvestmentsAccount}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Target retirement date:</strong> {this.state.simDetailLabels.targetRetirementDate}</span><br style={{ marginTop: '.25em' }} />
+                                                    </>
+                                                }
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    {this.state.isPreflightChecklistLoading ? <Spinner animation="border" variant="warning" /> :
+                                        <WorthCard worthObject={this.state.simDetailLabels.worthObject} header="Verify your balances" />}
+                                </Col>
+                                <Col>
+                                    <Card border="primary" className="account-card account-card-edit">
+                                        <Card.Body>
+                                            <Card.Header><h3 className="account-card-header">Current monthly cash flow</h3></Card.Header>
+                                            <Card.Text>
+                                                {this.state.isPreflightChecklistLoading ? <Spinner as="span" animation="border" variant="warning" /> :
+                                                    <>
+                                                        <span className="account-card-form-label"><strong>Income:</strong> {this.state.simDetailLabels.cashFlowObject.totalMonthlyIncome}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Debt:</strong> {this.state.simDetailLabels.cashFlowObject.debtMonthlySpend}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Bills:</strong> {this.state.simDetailLabels.cashFlowObject.billsMonthlySpend}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Budgets:</strong> {this.state.simDetailLabels.cashFlowObject.budgetsMonthlySpend}</span><br style={{ marginTop: '.25em' }} />
+                                                        <span className="account-card-form-label"><strong>Total cash flow:</strong> {this.state.simDetailLabels.cashFlowObject.cashFlow}</span><br style={{ marginTop: '.25em' }} />
+                                                    </>
+                                                }
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
 
+                                </Col>
+
+                            </Row>
                             <Button
                                 onClick={this.handleRunSimButton}
                                 className="orangeButton"
@@ -878,7 +965,7 @@ export default class Simulation extends Component {
                                             <WealthAreaChart2 auth={this.props.auth} worthScheduleStateful={this.state.worthScheduleStateful} />
                                         </Col>
                                         <Col>
-                                            <WorthCard worthObject={this.state.worthScheduleStateful[this.state.worthScheduleStateful.length - 1]} header="Projected net worth at retirement" />
+                                            <WorthCard worthObject={(this.state.worthScheduleStateful.length > 0) ? this.state.worthScheduleStateful[this.state.worthScheduleStateful.length - 1] : {}} header="Projected net worth at retirement" />
                                         </Col>
                                     </Row>
                                 </Container>

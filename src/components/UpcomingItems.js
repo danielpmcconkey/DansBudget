@@ -49,7 +49,7 @@ export default class UpcomingItems extends Component {
 
                 // set up time bindings
                 var earliestTime = moment().subtract(7, 'day');
-                var latestTime = moment().add(21, 'day');
+                var latestTime = moment().add(135, 'day');
 
 
                 // iterate through payment schedule and display those within the time bindings
