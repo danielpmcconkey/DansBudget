@@ -11,7 +11,7 @@ class LogOut extends Component {
             this.props.auth.setUser(null);
             this.props.history.push("/");
         } catch (error) {
-            this.props.onChangeMessage(`An error occurred on log out: ${error}`, "danger");
+            this.props.onChangeMessage(`An error occurred on log out: ${error}`, "danger", "Error", true);
         }
 
     }

@@ -51,9 +51,9 @@ export default class BudgetAdmin extends Component {
                 budgets: multiSort.multiSort([...this.state.budgets, this.state.newBudget], "nickName", true)
             });
             await this.resetNewBudget();
-            this.props.onChangeMessage("Budget item added", "success");
+            this.props.onChangeMessage("Budget item added", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to add budget item: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to add budget item: ${err}`, "danger", "Error", true);
         }
     }
     handleUpdateBudget = async (budgetId, nickName, amount) => {
@@ -80,10 +80,10 @@ export default class BudgetAdmin extends Component {
             this.setState({
                 budgets: multiSort.multiSort(updatedBudgets, "nickName", true)
             });
-            this.props.onChangeMessage("Budget item updated", "success");
+            this.props.onChangeMessage("Budget item updated", "success", "Success", true);
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to update budget item: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to update budget item: ${err}`, "danger", "Error", true);
         }
     }
     handleDeleteBudget = async (budgetId, event) => {
@@ -101,9 +101,9 @@ export default class BudgetAdmin extends Component {
                 this.setState({
                     budgets: multiSort.multiSort(updatedBudgets, "nickName", true)
                 });
-                this.props.onChangeMessage("Budget item deleted", "success");
+                this.props.onChangeMessage("Budget item deleted", "success", "Success", true);
             } catch (err) {
-                this.props.onChangeMessage(`Unable to delete budget item: ${err}`, "danger");
+                this.props.onChangeMessage(`Unable to delete budget item: ${err}`, "danger", "Error", true);
             }
         }
     }
@@ -128,7 +128,7 @@ export default class BudgetAdmin extends Component {
             });
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to pull budget items from database: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to pull budget items from database: ${err}`, "danger", "Error", true);
         }
     }
     onNickNameChange = event => this.setState({ newBudget: { ...this.state.newBudget, "nickName": event.target.value } });

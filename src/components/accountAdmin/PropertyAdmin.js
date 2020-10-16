@@ -55,9 +55,9 @@ export default class PropertyAdmin extends Component {
                 properties: multiSort.multiSort([...this.state.properties, this.state.newProperty], "homeValue", false)
             });
             await this.resetNewProperty();
-            this.props.onChangeMessage("Property added", "success");
+            this.props.onChangeMessage("Property added", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to add property: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to add property: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -86,9 +86,9 @@ export default class PropertyAdmin extends Component {
             this.setState({
                 properties: multiSort.multiSort(updatedProperties, "homeValue", false)
             });
-            this.props.onChangeMessage("Property updated", "success");
+            this.props.onChangeMessage("Property updated", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to update property: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to update property: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -107,9 +107,9 @@ export default class PropertyAdmin extends Component {
                 this.setState({
                     properties: multiSort.multiSort(updatedProperties, "homeValue", false)
                 });
-                this.props.onChangeMessage("Property deleted", "success");
+                this.props.onChangeMessage("Property deleted", "success", "Success", true);
             } catch (err) {
-                this.props.onChangeMessage(`Unable to delete property: ${err}`, "danger");
+                this.props.onChangeMessage(`Unable to delete property: ${err}`, "danger", "Error", true);
             }
         }
     }
@@ -133,7 +133,7 @@ export default class PropertyAdmin extends Component {
             });
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to pull properties from the database: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to pull properties from the database: ${err}`, "danger", "Error", true);
         }
     }
 

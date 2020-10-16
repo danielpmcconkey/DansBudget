@@ -58,7 +58,7 @@ class ChangePassword extends Component {
                 );
                 this.props.history.push('/ChangePasswordConfirmation');
             } catch (error) {
-                this.props.onChangeMessage(`An error has occurred: ${error}`, "danger");
+                this.props.onChangeMessage(`An error has occurred: ${error}`, "danger", "Error", true);
 
             }
         }

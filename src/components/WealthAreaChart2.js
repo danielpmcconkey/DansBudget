@@ -243,7 +243,7 @@ export default class WealthAreaChart2 extends Component {
 
 
         } catch (err) {
-            this.props.onChangeMessage(`An error has while fetching chart data: ${err}`, "danger");
+            this.props.onChangeMessage(`An error has while fetching chart data: ${err}`, "danger", "Error", true);
         }
 
     }

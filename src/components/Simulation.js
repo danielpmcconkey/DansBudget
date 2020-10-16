@@ -769,7 +769,7 @@ export default class Simulation extends Component {
     }
     saveSimData = async () => {
 
-        this.props.onChangeMessage("Saving sim data", "hidden");
+        this.props.onChangeMessage("Saving sim data", "hidden", "Saving", false);
         await this.setState({
             isSaving: true,
             isSaveComplete: false
@@ -803,7 +803,7 @@ export default class Simulation extends Component {
                 isSaveComplete: true
             });
         } catch (err) {
-            this.props.onChangeMessage(`Unable to save simulation data: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to save simulation data: ${err}`, "danger", "Error", true);
         }
     }
     transferFunds = (fromAccount, toAccount, amount) => {

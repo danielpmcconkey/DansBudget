@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import Employer from './Employer';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import axios from "axios";
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import { SingleDatePicker } from 'react-dates';
+const moment = require('moment');
 const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
@@ -19,8 +23,8 @@ export default class EmployerAdmin extends Component {
             "employerId": "",
             "employerRetirementAccount": "",
             "householdId": "",
-            "mostRecentBonusDate": "",
-            "mostRecentPayday": "",
+            "mostRecentBonusDate": moment(),
+            "mostRecentPayday": moment(),
             "nickName": "",
             "payFrequency": "MONTHLY",
             "retirementContributionRate": "",
@@ -40,8 +44,8 @@ export default class EmployerAdmin extends Component {
                 "employerId": "",
                 "employerRetirementAccount": "",
                 "householdId": "",
-                "mostRecentBonusDate": "",
-                "mostRecentPayday": "",
+                "mostRecentBonusDate": moment(),
+                "mostRecentPayday": moment(),
                 "nickName": "",
                 "payFrequency": "MONTHLY",
                 "retirementContributionRate": "",
@@ -77,9 +81,9 @@ export default class EmployerAdmin extends Component {
                 employers: multiSort.multiSort([...this.state.employers, this.state.newEmployer], "nickName", true)
             });
             await this.resetNewEmployer();
-            this.props.onChangeMessage("Employer added", "success");
+            this.props.onChangeMessage("Employer added", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to add employer: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to add employer: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -135,10 +139,10 @@ export default class EmployerAdmin extends Component {
             this.setState({
                 employers: multiSort.multiSort(updatedEmployers, "nickName", true)
             });
-            this.props.onChangeMessage("Employer updated", "success");
+            this.props.onChangeMessage("Employer updated", "success", "Success", true);
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to update employer: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to update employer: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -157,9 +161,9 @@ export default class EmployerAdmin extends Component {
                 this.setState({
                     employers: multiSort.multiSort(updatedEmployers, "nickName", true)
                 });
-                this.props.onChangeMessage("Employer deleted", "success");
+                this.props.onChangeMessage("Employer deleted", "success", "Success", true);
             } catch (err) {
-                this.props.onChangeMessage(`Unable to delete employer: ${err}`, "danger");
+                this.props.onChangeMessage(`Unable to delete employer: ${err}`, "danger", "Error", true);
             }
         }
     }
@@ -185,7 +189,7 @@ export default class EmployerAdmin extends Component {
             });
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to pull employers from database: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to pull employers from database: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -213,8 +217,12 @@ export default class EmployerAdmin extends Component {
     onCurrentSalaryGrossAnnualChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "currentSalaryGrossAnnual": event.target.value } });
     onCurrentSalaryNetPerPaycheckChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "currentSalaryNetPerPaycheck": event.target.value } });
     onNEmployerRetirementAccountChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "employerRetirementAccount": event.target.value } });
-    onMostRecentBonusDateChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "mostRecentBonusDate": event.target.value } });
-    onMostRecentPaydayChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "mostRecentPayday": event.target.value } });
+    onMostRecentBonusDateChange = (newdate) => {
+        this.setState({ newEmployer: { ...this.state.newEmployer, "mostRecentBonusDate": newdate.format("YYYY-MM-DD") } });
+    }
+    onMostRecentPaydayChange = (newdate) => {
+        this.setState({ newEmployer: { ...this.state.newEmployer, "mostRecentPayday": newdate.format("YYYY-MM-DD") } });
+    }
     onNickNameChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "nickName": event.target.value } });
     onPayFrequencyChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "payFrequency": event.target.value } });
     onRetirementContributionRateChange = event => this.setState({ newEmployer: { ...this.state.newEmployer, "retirementContributionRate": event.target.value } });
@@ -298,17 +306,29 @@ export default class EmployerAdmin extends Component {
                                         </Form.Control>
 
                                         <p className="account-card-form-label">Most recent bonus date:</p>
-                                        <Form.Control type="text"
-                                            placeholder="YYYY-MM-DD"
-                                            value={this.state.newEmployer.mostRecentBonusDate}
-                                            onChange={this.onMostRecentBonusDateChange}
+
+                                        <SingleDatePicker
+                                            date={moment(this.state.newEmployer.mostRecentBonusDate)}
+                                            onDateChange={date => this.onMostRecentBonusDateChange(date)}
+                                            focused={this.state.focused}
+                                            onFocusChange={({ focused }) => this.setState({ focused })}
+                                            id="new_bonus_date_picker"
+                                            enableOutsideDays={false}
+                                            isDayBlocked={() => false}
+                                            isOutsideRange={() => false}
                                         />
 
                                         <p className="account-card-form-label">Most recent pay day:</p>
-                                        <Form.Control type="text"
-                                            placeholder="YYYY-MM-DD"
-                                            value={this.state.newEmployer.mostRecentPayday}
-                                            onChange={this.onMostRecentPaydayChange}
+
+                                        <SingleDatePicker
+                                            date={moment(this.state.newEmployer.mostRecentPayday)}
+                                            onDateChange={date2 => this.onMostRecentPaydayChange(date2)}
+                                            focused={this.state.focused2}
+                                            onFocusChange={({ focused: focused2 }) => this.setState({ focused2 })}
+                                            id="new_pay_date_picker"
+                                            enableOutsideDays={false}
+                                            isDayBlocked={() => false}
+                                            isOutsideRange={() => false}
                                         />
 
                                         <p className="account-card-form-label">Retirement contribution percent:</p>
@@ -330,7 +350,7 @@ export default class EmployerAdmin extends Component {
                                                 type="submit"
                                                 style={{ marginTop: '1em' }}
                                                 variant="primary">
-                                                Add asset account
+                                                Add employer
                                             </Button>
                                         </Form.Group>
                                     </Form>

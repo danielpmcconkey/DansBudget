@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import { Card, Nav, Form, Button } from 'react-bootstrap';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import { SingleDatePicker } from 'react-dates';
+const moment = require('moment');
 
 export default class BillAdmin extends Component {
 
@@ -26,7 +30,9 @@ export default class BillAdmin extends Component {
         this.setState({ "updatedNickName": event.target.value });
     }
     onAmountDueChange = event => this.setState({ "updatedAmountDue": event.target.value });
-    onLastPaidDateChange = event => this.setState({ "updatedLastPaidDate": event.target.value });
+    onLastPaidDateChange = (newdate) => {
+        this.setState({ "updatedLastPaidDate": newdate.format("YYYY-MM-DD") });
+    }
     onPayFrequencyChange = event => this.setState({ "updatedPayFrequency": event.target.value });
 
 
@@ -54,11 +60,16 @@ export default class BillAdmin extends Component {
                                         onChange={this.onAmountDueChange}
                                     />
                                     <span className="account-card-form-label">Last paid date:</span><br style={{ marginTop: '1em' }} />
-                                    <Form.Control size="lg" type="text"
-                                        placeholder="YYYY-MM-DD"
-                                        value={this.state.updatedLastPaidDate}
-                                        onChange={this.onLastPaidDateChange}
-                                    />
+                                    <SingleDatePicker
+                                        date={moment(this.state.updatedLastPaidDate)}
+                                        onDateChange={date => this.onLastPaidDateChange(date)}
+                                        focused={this.state.focused}
+                                        onFocusChange={({ focused }) => this.setState({ focused })}
+                                        id="edit_date_picker"
+                                        enableOutsideDays={false}
+                                        isDayBlocked={() => false}
+                                        isOutsideRange={() => false}
+                                    /><br />
                                     <span className="account-card-form-label">Payment frequency:</span><br style={{ marginTop: '1em' }} />
                                     <Form.Control size="lg" as="select"
                                         value={this.state.updatedPayFrequency}

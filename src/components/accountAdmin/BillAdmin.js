@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import Bill from './Bill';
 import axios from "axios";
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import { SingleDatePicker } from 'react-dates';
+const moment = require('moment');
 const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
@@ -18,7 +22,7 @@ export default class BillAdmin extends Component {
             "isOpen": true,
             "nickName": "",
             "amountDue": "",
-            "lastPaidDate": "",
+            "lastPaidDate": moment(),
             "payFrequency": "MONTHLY"
         },
         bills: [],
@@ -33,7 +37,7 @@ export default class BillAdmin extends Component {
                 "isOpen": true,
                 "nickName": "",
                 "amountDue": "",
-                "lastPaidDate": "",
+                "lastPaidDate": moment(),
                 "payFrequency": "MONTHLY"
             }
         });
@@ -61,9 +65,9 @@ export default class BillAdmin extends Component {
                 bills: multiSort.multiSort([...this.state.bills, this.state.newBill], "nickName", true)
             });
             await this.resetNewBill();
-            this.props.onChangeMessage("Bill added", "success");
+            this.props.onChangeMessage("Bill added", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to add bill: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to add bill: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -96,10 +100,10 @@ export default class BillAdmin extends Component {
             this.setState({
                 bills: multiSort.multiSort(updatedBills, "nickName", true)
             });
-            this.props.onChangeMessage("Bill updated", "success");
+            this.props.onChangeMessage("Bill updated", "success", "Success", true);
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to update bill: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to update bill: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -118,9 +122,9 @@ export default class BillAdmin extends Component {
                 this.setState({
                     bills: multiSort.multiSort(updatedBills, "nickName", true)
                 });
-                this.props.onChangeMessage("Bill deleted", "success");
+                this.props.onChangeMessage("Bill deleted", "success", "Success", true);
             } catch (err) {
-                this.props.onChangeMessage(`Unable to delete bill: ${err}`, "danger");
+                this.props.onChangeMessage(`Unable to delete bill: ${err}`, "danger", "Error", true);
             }
         }
     }
@@ -146,13 +150,15 @@ export default class BillAdmin extends Component {
             });
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to pull bills from database: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to pull bills from database: ${err}`, "danger", "Error", true);
         }
     }
 
     onNickNameChange = event => this.setState({ newBill: { ...this.state.newBill, "nickName": event.target.value } });
     onAmountDueChange = event => this.setState({ newBill: { ...this.state.newBill, "amountDue": event.target.value } });
-    onLastPaidDateChange = event => this.setState({ newBill: { ...this.state.newBill, "lastPaidDate": event.target.value } });
+    onLastPaidDateChange = (newdate) => {
+        this.setState({ newBill: { ...this.state.newBill, "lastPaidDate": newdate.format("YYYY-MM-DD") } });
+    }
     onPayFrequencyChange = event => this.setState({ newBill: { ...this.state.newBill, "payFrequency": event.target.value } });
 
 
@@ -188,13 +194,21 @@ export default class BillAdmin extends Component {
                                         <Form.Control type="text"
                                             value={this.state.newBill.amountDue}
                                             onChange={this.onAmountDueChange}
+                                            placeholder="enter amount due"
                                         />
                                         <p className="account-card-form-label">Enter last payment date</p>
-                                        <Form.Control type="text"
-                                            value={this.state.newBill.lastPaidDate}
-                                            onChange={this.onLastPaidDateChange}
-                                            placeholder="YYYY-MM-DD"
+
+                                        <SingleDatePicker
+                                            date={moment(this.state.newBill.lastPaidDate)}
+                                            onDateChange={date => this.onLastPaidDateChange(date)}
+                                            focused={this.state.focused}
+                                            onFocusChange={({ focused }) => this.setState({ focused })}
+                                            id="new_date_picker"
+                                            enableOutsideDays={false}
+                                            isDayBlocked={() => false}
+                                            isOutsideRange={() => false}
                                         />
+
                                         <p className="account-card-form-label">Enter pay frequency</p>
                                         <Form.Control as="select"
                                             value={this.state.newBill.payFrequency}

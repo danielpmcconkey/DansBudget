@@ -5,8 +5,8 @@ import UpcomingItems from './UpcomingItems';
 export default class Home extends Component {
 
 
-    onChangeMessage = (ResultsViewMessage, ResultsViewMode) => {
-        this.props.onChangeMessage(ResultsViewMessage, ResultsViewMode);
+    onChangeMessage = (ResultsViewMessage, ResultsViewMode, ResultsViewHeader, shouldAlertShow) => {
+        this.props.onChangeMessage(ResultsViewMessage, ResultsViewMode, ResultsViewHeader, shouldAlertShow);
     }
 
     render() {

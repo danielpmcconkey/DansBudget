@@ -112,7 +112,7 @@ export default class UpcomingItems extends Component {
             } // end if data != undefined
 
         } catch (err) {
-            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger");
+            this.props.onChangeMessage(`An error has occurred: ${err}`, "danger", "Error", true);
         }
 
     }

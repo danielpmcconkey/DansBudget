@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
 import { Card, Nav, Form, Button } from 'react-bootstrap';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import { SingleDatePicker } from 'react-dates';
+const moment = require('moment');
+
 
 
 export default class EmployerAdmin extends Component {
@@ -56,8 +61,12 @@ export default class EmployerAdmin extends Component {
         this.setState({ "updatedEmployerRetirementAccount": event.target.value });
         this.updateRetirementAccountDisplayName(event.target.value);
     }
-    onMostRecentBonusDateChange = event => this.setState({ "updatedMostRecentBonusDate": event.target.value });
-    onMostRecentPaydayChange = event => this.setState({ "updatedMostRecentPayday": event.target.value });
+    onMostRecentBonusDateChange = (newdate) => {
+        this.setState({ "updatedMostRecentBonusDate": newdate.format("YYYY-MM-DD") });
+    }
+    onMostRecentPaydayChange = (newdate) => {
+        this.setState({ "updatedMostRecentPayday": newdate.format("YYYY-MM-DD") });
+    }
     onNickNameChange = event => this.setState({ "updatedNickName": event.target.value });
     onPayFrequencyChange = event => this.setState({ "updatedPayFrequency": event.target.value });
     onRetirementContributionRateChange = event => this.setState({ "updatedRetirementContributionRate": event.target.value });
@@ -146,17 +155,29 @@ export default class EmployerAdmin extends Component {
                                     </Form.Control>
 
                                     <span className="account-card-form-label">Most recent bonus date:</span><br style={{ marginTop: '1em' }} />
-                                    <Form.Control type="text"
-                                        placeholder="YYYY-MM-DD"
-                                        value={this.state.updatedMostRecentBonusDate}
-                                        onChange={this.onMostRecentBonusDateChange}
-                                    />
+                                    <SingleDatePicker
+                                        date={moment(this.state.updatedMostRecentBonusDate)}
+                                        onDateChange={date => this.onMostRecentBonusDateChange(date)}
+                                        focused={this.state.focused}
+                                        onFocusChange={({ focused }) => this.setState({ focused })}
+                                        id="edit_bonus_date_picker"
+                                        enableOutsideDays={false}
+                                        isDayBlocked={() => false}
+                                        isOutsideRange={() => false}
+                                    /><br />
+
+
                                     <span className="account-card-form-label">Most recent pay day:</span><br style={{ marginTop: '1em' }} />
-                                    <Form.Control type="text"
-                                        placeholder="YYYY-MM-DD"
-                                        value={this.state.updatedMostRecentPayday}
-                                        onChange={this.onMostRecentPaydayChange}
-                                    />
+                                    <SingleDatePicker
+                                        date={moment(this.state.updatedMostRecentPayday)}
+                                        onDateChange={date => this.onMostRecentPaydayChange(date)}
+                                        focused={this.state.focused2}
+                                        onFocusChange={({ focused: focused2 }) => this.setState({ focused2 })}
+                                        id="edit_pay_date_picker"
+                                        enableOutsideDays={false}
+                                        isDayBlocked={() => false}
+                                        isOutsideRange={() => false}
+                                    /><br />
                                     <span className="account-card-form-label">Retirement contribution percent</span><br style={{ marginTop: '1em' }} />
                                     <Form.Control type="text"
                                         placeholder="Enter retirement contribution percent"
@@ -188,7 +209,7 @@ export default class EmployerAdmin extends Component {
                                             <Nav.Link href="#first" onClick={this.handleEmployerEdit}>Edit</Nav.Link>
                                         </Nav.Item>
                                         <Nav.Item>
-                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteEmployer(this.props.assetAccountId, event)}>Delete</Nav.Link>
+                                            <Nav.Link href="#link" onClick={event => this.props.handleDeleteEmployer(this.props.employerId, event)}>Delete</Nav.Link>
                                         </Nav.Item>
                                     </Nav>
                                 </Card.Header>

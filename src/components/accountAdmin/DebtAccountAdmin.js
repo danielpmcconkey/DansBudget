@@ -2,6 +2,10 @@ import React, { Component, Fragment } from 'react';
 import DebtAccount from './DebtAccount';
 import axios from "axios";
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import { SingleDatePicker } from 'react-dates';
+const moment = require('moment');
 const multiSort = require('../sharedFunctions/multiSort');
 const config = require('../../config.json');
 
@@ -20,7 +24,7 @@ export default class DebtAccountAdmin extends Component {
             "nickName": "",
             "rate": "",
             "minPayment": "",
-            "lastPaidDate": "",
+            "lastPaidDate": moment(),
             "payFrequency": "MONTHLY"
         },
         debtAccounts: [],
@@ -37,7 +41,7 @@ export default class DebtAccountAdmin extends Component {
                 "nickName": "",
                 "rate": "",
                 "minPayment": "",
-                "lastPaidDate": "",
+                "lastPaidDate": moment(),
                 "payFrequency": "MONTHLY"
             }
         });
@@ -66,9 +70,9 @@ export default class DebtAccountAdmin extends Component {
                 debtAccounts: multiSort.multiSort([...this.state.debtAccounts, this.state.newDebtAccount], "balance", false)
             });
             await this.resetNewDebtAccount();
-            this.props.onChangeMessage("Debit account added", "success");
+            this.props.onChangeMessage("Debit account added", "success", "Success", true);
         } catch (err) {
-            this.props.onChangeMessage(`Unable to add debit account: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to add debit account: ${err}`, "danger", "Error", true);
         }
     }
     handleUpdateDebtAccount = async (debtAccountId, nickName, balance, rate, minPayment, lastPaidDate, payFrequency) => {
@@ -103,10 +107,10 @@ export default class DebtAccountAdmin extends Component {
             this.setState({
                 debtAccounts: multiSort.multiSort(updatedDebtAccounts, "balance", false)
             });
-            this.props.onChangeMessage("Debit account updated", "success");
+            this.props.onChangeMessage("Debit account updated", "success", "Success", true);
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to update debit account: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to update debit account: ${err}`, "danger", "Error", true);
         }
     }
     handleDeleteDebtAccount = async (debtAccountId, event) => {
@@ -124,9 +128,9 @@ export default class DebtAccountAdmin extends Component {
                 this.setState({
                     debtAccounts: multiSort.multiSort(updatedDebtAccounts, "balance", false)
                 });
-                this.props.onChangeMessage("Debit account deleted", "success");
+                this.props.onChangeMessage("Debit account deleted", "success", "Success", true);
             } catch (err) {
-                this.props.onChangeMessage(`Unable to delete debit account: ${err}`, "danger");
+                this.props.onChangeMessage(`Unable to delete debit account: ${err}`, "danger", "Error", true);
             }
         }
     }
@@ -145,12 +149,11 @@ export default class DebtAccountAdmin extends Component {
 
             const res = await axios.get(url, requestConfig);
             this.setState({
-                //debtAccounts: multiSort.multiSort(res.data, "balance", false)
-                debtAccounts: multiSort.multiSort(res.data, "rate", false)
+                debtAccounts: multiSort.multiSort(res.data, "balance", false)
             });
 
         } catch (err) {
-            this.props.onChangeMessage(`Unable to pull debit accounts from database: ${err}`, "danger");
+            this.props.onChangeMessage(`Unable to pull debit accounts from database: ${err}`, "danger", "Error", true);
         }
     }
 
@@ -158,7 +161,9 @@ export default class DebtAccountAdmin extends Component {
     onBalanceChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "balance": event.target.value } });
     onRateChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "rate": event.target.value } });
     onMinPaymentChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "minPayment": event.target.value } });
-    onLastPaidDateChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "lastPaidDate": event.target.value } });
+    onLastPaidDateChange = (newdate) => {
+        this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "lastPaidDate": newdate.format("YYYY-MM-DD") } });
+    }
     onPayFrequencyChange = event => this.setState({ newDebtAccount: { ...this.state.newDebtAccount, "payFrequency": event.target.value } });
     componentDidMount = () => {
         if (this.props.auth.user !== null) {
@@ -206,10 +211,16 @@ export default class DebtAccountAdmin extends Component {
                                         />
 
                                         <p className="account-card-form-label">Last payment date</p>
-                                        <Form.Control type="text"
-                                            value={this.state.newDebtAccount.lastPaidDate}
-                                            onChange={this.onLastPaidDateChange}
-                                            placeholder="YYYY-MM-DD"
+
+                                        <SingleDatePicker
+                                            date={moment(this.state.newDebtAccount.lastPaidDate)}
+                                            onDateChange={date => this.onLastPaidDateChange(date)}
+                                            focused={this.state.focused}
+                                            onFocusChange={({ focused }) => this.setState({ focused })}
+                                            id="new_date_picker"
+                                            enableOutsideDays={false}
+                                            isDayBlocked={() => false}
+                                            isOutsideRange={() => false}
                                         />
 
                                         <p className="account-card-form-label">Pay frequency</p>
